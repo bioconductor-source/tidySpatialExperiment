@@ -335,22 +335,6 @@ add_attr <- tidySingleCellExperiment:::add_attr
 #' @noRd
 to_tib <- tidySingleCellExperiment:::to_tib
 
-#' Get specific annotation columns
-#'
-#' @keywords internal
-#' @noRd
-#' 
-#' @importFrom rlang enquo
-#' @importFrom purrr map
-#' @importFrom dplyr distinct_at
-#' @importFrom magrittr equals
-#' 
-#' @param .data A tibble
-#' @param .col A vector of column names
-#' 
-#' @return A character
-get_specific_annotation_columns <- tidySingleCellExperiment:::get_specific_annotation_columns
-
 #' Subset columns
 #'
 #' @keywords internal
@@ -404,6 +388,27 @@ quo_names <- tidySingleCellExperiment:::quo_names
 #' @importFrom rlang expr
 #' @importFrom tidyselect eval_select
 select_helper <- tidySingleCellExperiment:::select_helper
+
+#' as_SummarizedExperiment
+#'
+#' @keywords internal
+#' @noRd
+#' 
+#' @description as_SummarizedExperiment creates a `SummarizedExperiment` object from a `tbl` or `tidybulk` tbl formatted as | <SAMPLE> | <TRANSCRIPT> | <COUNT> | <...> |
+#'
+#' @importFrom rlang enquo
+#' @importFrom rlang quo_name
+#' @importFrom rlang quo_squash
+#' @importFrom utils data
+#' @importFrom tidyr pivot_longer
+#'
+#' @param .data A tibble
+#' @param .sample The name of the sample column
+#' @param .transcript The name of the transcript/gene column
+#' @param .abundance The name of the transcript/gene abundance column
+#'
+#' @return A `SummarizedExperiment` object
+as_SummarizedExperiment <- tidySingleCellExperiment:::as_SummarizedExperiment
 
 # This function is used for the change of special sample column to .sample
 # Check if "sample" is included in the query and is not part of any other existing annotation
