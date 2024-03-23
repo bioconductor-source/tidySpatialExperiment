@@ -70,11 +70,11 @@ setMethod("join_features", "SpatialExperiment",  function(.data,
             message("tidySpatialExperiment says: A data frame is returned for independent data analysis.")
           
             # Join feature abundance with colData by index
-            .data %>%
-                colData() %>%
-                tibble::as_tibble(rownames = c_(.data)$name) %>%
-                tibble::rowid_to_column("index") %>%
-                dplyr::mutate(index = as.character(index)) %>%
+            .data |>
+                colData() |>
+                tibble::as_tibble(rownames = c_(.data)$name) |>
+                tibble::rowid_to_column("index") |>
+                dplyr::mutate(index = as.character(index)) |>
                 dplyr::left_join(
                     get_abundance_sc_long(
                         .data = .data,
@@ -83,25 +83,25 @@ setMethod("join_features", "SpatialExperiment",  function(.data,
                         exclude_zeros = exclude_zeros
                     ),
                     by = "index"
-                ) %>%
+                ) |>
                 dplyr::mutate("index" = NULL)
         
         # Shape is wide
         } else {
           colData(.data) <- 
-            .data %>% 
-                colData() %>%
-                tibble::as_tibble(rownames = c_(.data)$name) %>%
-                tibble::rowid_to_column("index") %>%
-                dplyr::mutate(index = as.character(index)) %>%
+            .data |>
+                colData() |>
+                tibble::as_tibble(rownames = c_(.data)$name) |>
+                tibble::rowid_to_column("index") |>
+                dplyr::mutate(index = as.character(index)) |>
                 left_join(
                     get_abundance_sc_wide(
                         .data = .data,
                         features = features,
                         all = all, ...
                     ),
-                    by = "index") %>%
-                dplyr::mutate("index" = NULL) %>%
+                    by = "index") |>
+                dplyr::mutate("index" = NULL) |>
                 as_meta_data(.data)
             .data
         } 
@@ -145,10 +145,10 @@ aggregate_cells <- function(.data, .sample = NULL, slot = "data", assays = NULL,
         .data@assays@data <- .data@assays@data[assays]
     }
     
-    .data %>%
+    .data |>
       
-        nest(data = -!!.sample) %>%
-        mutate(.aggregated_cells = as.integer(map(data, ~ ncol(.x)))) %>% 
+        nest(data = -!!.sample) |>
+        mutate(.aggregated_cells = as.integer(map(data, ~ ncol(.x)))) |>
         mutate(data = map(data, ~ 
                           
                           # loop over assays
@@ -156,19 +156,24 @@ aggregate_cells <- function(.data, .sample = NULL, slot = "data", assays = NULL,
                               as.list(assays(.x)), names(.x@assays),
                               
                               # Get counts
-                              ~  .x %>%
-                                aggregation_function(na.rm = TRUE) %>%
+                              ~  .x |>
+                                aggregation_function(na.rm = TRUE) |>
                                 enframe(
                                     name  = "feature",
                                     value = sprintf("%s", .y)
-                                ) %>%
+                                ) |>
                                 mutate(feature = as.character(feature)) 
-                          ) %>%
-                          Reduce(function(...) dplyr::full_join(..., by = c("feature")), .)
-                        
-    )) %>%
-    left_join(.data %>% as_tibble() %>% subset(!!.sample), by = quo_names(.sample)) %>%
-    unnest(data) %>%
+                          ) |>
+                          reduce(function(...) dplyr::full_join(..., by = c("feature")))
+
+        )) |>
+        left_join(
+            .data |> 
+            as_tibble() |> 
+            subset(!!.sample),
+        by = quo_names(.sample)
+        ) |>
+        unnest(data) |>
     
     drop_class("tidySpatialExperiment_nested") |> 
     

@@ -29,14 +29,14 @@ tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
                 align(paste0(names2(named_header), ":"), space = NBSP),
                 " ",
                 named_header
-            ) %>%
+            ) |>
       
             # Add further info single-cell
             append(sprintf(
                 "\033[90m Features=%s | Cells=%s | Assays=%s\033[39m",
                 number_of_features,
                 nrow(x),
-                assay_names %>% paste(collapse=", ")
+                assay_names |> paste(collapse=", ")
             ), after = 1)
     }
   
@@ -62,9 +62,9 @@ print.SpatialExperiment <- function(x, ..., n = NULL, width = NULL) {
 
     x |>
         as_tibble(n_dimensions_to_return = 5) |>
-        new_data_frame(class = c("tidySpatialExperiment", "tbl")) %>%
-        add_attr(nrow(x), "number_of_features") %>%
-        add_attr(assays(x) %>% names, "assay_names") %>%
+        new_data_frame(class = c("tidySpatialExperiment", "tbl")) |>
+        add_attr(nrow(x), "number_of_features") |>
+        add_attr(assays(x) |> names(), "assay_names") |>
         print()
   
     invisible(x)

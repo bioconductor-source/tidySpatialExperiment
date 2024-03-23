@@ -17,7 +17,7 @@
 #' @return A tidySpatialExperiment object
 #'
 #' @noRd
-get_abundance_sc_wide <- function(.data, features = NULL, all = FALSE, assay = SummarizedExperiment::assays(.data) %>% as.list() %>% tail(1) %>% names,  prefix = "") {
+get_abundance_sc_wide <- function(.data, features = NULL, all = FALSE, assay = SummarizedExperiment::assays(.data) |> as.list() |> tail(1) |> names(),  prefix = "") {
 
     # Solve CRAN warnings
     . <- NULL
@@ -54,20 +54,28 @@ get_abundance_sc_wide <- function(.data, features = NULL, all = FALSE, assay = S
     }
 
     # Just grub last assay
-    assays(.data) %>%
-        as.list() %>%
-        .[[assay]] %>%
+    assays(.data) |>
+        as.list() |>
+        pluck(assay) |>
         when(
-            variable_genes %>% is.null() %>% `!`() ~ (.)[variable_genes, , drop = FALSE],
-            features %>% is.null() %>% `!`() ~ (.)[features, , drop = FALSE],
+            variable_genes |>
+              is.null() |>
+              lapply(`!`) |>
+              unlist() ~ 
+                (.)[variable_genes, , drop = FALSE],
+            features |>
+                is.null() |>
+                lapply(`!`) |>
+                unlist() ~ 
+                (.)[features, , drop = FALSE],
             ~ stop("It is not convenient to extract all genes, you should have either variable features or feature list to extract")
-        ) %>%
-        as.matrix() %>%
-        t() %>%
-        as_tibble() %>%
+        ) |>
+        as.matrix() |>
+        t() |>
+        as_tibble() |>
       
         # Add index for joining
-        tibble::rowid_to_column("index") %>%
+        tibble::rowid_to_column("index") |>
         dplyr::mutate(index = as.character(index))
 }
 
@@ -159,41 +167,48 @@ get_abundance_sc_long <- function(.data, features = NULL, all = FALSE, exclude_z
         variable_genes <- NULL
     }
 
-    assay_names <- assays(.data) %>% names()
+    assay_names <- assays(.data) |> names()
 
     # Check that I have assay manes
     if(length(assay_names) == 0)
         stop("tidySpatialExperiment says: there are no assays names in the source SpatialExperiment.")
 
-    assays(.data) %>%
-        as.list() %>%
+    assays(.data) |>
+        as.list() |>
         
         # Take active assay
         map2(assay_names, function(x, y) {
             x <- 
-                x %>%
+                x |>
                     when(
-                        variable_genes %>% is.null() %>% `!`() ~ x[variable_genes, , drop = FALSE],
-                        features %>% is.null() %>% `!`() ~ x[toupper(rownames(x)) %in% toupper(features), , drop = FALSE],
+                        variable_genes |> 
+                            is.null() |> 
+                            lapply(`!`) ~ 
+                            x[variable_genes, , drop = FALSE],
+                        features |>
+                            is.null() |> 
+                            lapply(`!`) |> 
+                            unlist() ~ 
+                            x[toupper(rownames(x)) %in% toupper(features), , drop = FALSE],
                         all ~ x,
                         ~ stop("It is not convenient to extract all genes, you should have either variable features or feature list to extract")
-                    ) %>%
-                    as.matrix() %>%
-                    DataFrame() %>%
+                    ) |>
+                    as.matrix() |>
+                    DataFrame() |>
                     tibble::as_tibble(rownames = ".feature")
             
             # Rename columns with index to handle duplicate cell names
             colnames(x) <- c(".feature", 2:length(colnames(x))-1)
             
-            x %>%
+            x |>
                 tidyr::pivot_longer(
                     cols = -.feature,
                     names_to = "index",
-                    values_to = ".abundance" %>% paste(y, sep = "_"),
+                    values_to = ".abundance" |> paste(y, sep = "_"),
                     values_drop_na = TRUE
                 )
-        }) %>%
-        Reduce(function(...) full_join(..., by = c(".feature", c_(.data)$name)), .)
+        }) |>
+        reduce(function(...) full_join(..., by = c(".feature", c_(.data)$name)))
 }
 
 #' @importFrom dplyr select_if
@@ -221,10 +236,13 @@ as_meta_data <- function(.data, SpatialExperiment_object) {
 
     # To avoid name change by the bind_cols of as_tibble
     trick_to_avoid_renaming_of_already_unique_columns_by_dplyr()
-
+    
+    col_names <- 
+        colnames(.data)[!colnames(.data) %in% col_to_exclude]
+    
     .data_df <-
-        .data %>%
-        select_if(!colnames(.) %in% col_to_exclude) %>%
+        .data |>
+        select(col_names) |>
         data.frame()
     
     # Select row names and change to dataframe class, allowing for duplicate values
@@ -252,9 +270,10 @@ as_meta_data <- function(.data, SpatialExperiment_object) {
 #' @noRd
 #'
 get_special_columns <- function(SpatialExperiment_object) {
-    get_special_datasets(SpatialExperiment_object) %>%
-        map(~ .x %>% colnames()) %>%
-        unlist() %>%
+    SpatialExperiment_object |>
+        get_special_datasets() |>
+        map(~ .x |> colnames()) |>
+        unlist() |>
         as.character()
 }
 
@@ -266,7 +285,7 @@ get_special_datasets <- function(SpatialExperiment_object, n_dimensions_to_retur
     rd <- SpatialExperiment_object@int_colData@listData$reducedDims
     
     reduced_dimensions <-
-        map2(rd %>% as.list(), names(rd), ~ {
+        map2(rd |> as.list(), names(rd), ~ {
             mat <- .x[, seq_len(min(n_dimensions_to_return, ncol(.x))), drop = FALSE]
             
             # Set names as SCE is much less constrained and there could be missing names

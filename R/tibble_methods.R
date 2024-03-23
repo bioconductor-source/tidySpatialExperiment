@@ -22,7 +22,7 @@ as_tibble.SpatialExperiment <- function(x, ...,
     
     # Extract cell metadata
     x_col_data <- 
-        x %>%
+        x |>
         colData()
     
     # Add cell label column to cell metadata from SpatialExperiment column names
@@ -30,18 +30,18 @@ as_tibble.SpatialExperiment <- function(x, ...,
         colnames(x)
     
     # Convert to tibble
-    x_col_data %>% 
-        tibble::as_tibble() %>%
-        dplyr::relocate(c_(x)$name) %>%
+    x_col_data |> 
+        tibble::as_tibble() |>
+        dplyr::relocate(c_(x)$name) |>
         
         # Add spatial coordinate information to cell metadata
-        left_join(x %>% SpatialExperiment::spatialCoords() %>% tibble::as_tibble(rownames = c_(x)$name), by = c_(x)$name, multiple = "first") %>%
+        left_join(x |> SpatialExperiment::spatialCoords() |> tibble::as_tibble(rownames = c_(x)$name), by = c_(x)$name, multiple = "first") |>
   
           # Attach reduced dimensions
           when(
   
               # Only if I have reduced dimensions and special datasets
-              ncol(x@int_colData@listData$reducedDims) > 0 ~ (.) %>% cbind(
+              ncol(x@int_colData@listData$reducedDims) > 0 ~ (.) |> cbind(
                 special_datasets_to_tibble(x, ...)
               ),
   
