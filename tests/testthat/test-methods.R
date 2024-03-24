@@ -1,27 +1,23 @@
 context('methods test')
-
 example(read10xVisium)
 
-test_that("join_features long",{
-
-  spe |>
-    join_features(c("ENSMUSG00000051951", "ENSMUSG00000025900"), shape = "long") |>
-    dplyr::pull(.abundance_counts) |>
-    sum() |>
-    expect_equal(8)
+test_that("join_features long", {
+    spe |>
+        join_features(c("ENSMUSG00000051951", "ENSMUSG00000025900"), shape = "long") |>
+        dplyr::pull(.abundance_counts) |>
+        sum() |>
+        expect_equal(8)
 })
 
-test_that("join_features wide",{
-  
-  spe |>
-    join_features(c("ENSMUSG00000051951", "ENSMUSG00000025900"), shape = "wide") |>
-    pull(ENSMUSG00000051951) |>
-    sum() |>
-    expect_equal(8)
+test_that("join_features wide", {
+    spe |>
+        join_features(c("ENSMUSG00000051951", "ENSMUSG00000025900"), shape = "wide") |>
+        pull(ENSMUSG00000051951) |>
+        sum() |>
+        expect_equal(8)
 })
 
 test_that("aggregate_cells", {
-  
     spe_aggregated <- 
         spe |>
         aggregate_cells(sample_id, assays = "counts")
@@ -36,20 +32,23 @@ test_that("aggregate_cells", {
 })
 
 test_that("ellipse", {
-
-  spe_filtered <- spe |>
-    filter(sample_id == "section1") |>
-    mutate(in_ellipse = ellipse(array_col, array_row, center =  c(50, 50), axes_lengths = c(30, 20)))
-
-  expect_equal(sum(spe_filtered$in_ellipse, na.rm = TRUE), 7)
+    spe_filtered <- spe |>
+        filter(sample_id == "section1") |>
+        mutate(in_ellipse = ellipse(
+            array_col, array_row, center =  c(50, 50), axes_lengths = c(30, 20)
+        ))
+    
+    expect_equal(sum(spe_filtered$in_ellipse, na.rm = TRUE), 7)
 })
 
 
 test_that("rectangle", {
-
-    spe_filtered <- spe |>
-                    filter(sample_id == "section1") |>
-                    mutate(in_rectangle = rectangle(array_col, array_row, center = c(50, 50), height = 100, width = 20))
+    spe_filtered <- 
+        spe |>
+        filter(sample_id == "section1") |>
+        mutate(in_rectangle = rectangle(
+            array_col, array_row, center = c(50, 50), height = 100, width = 20
+        ))
 
     expect_equal(sum(spe_filtered$in_rectangle, na.rm = TRUE), 8)
 })

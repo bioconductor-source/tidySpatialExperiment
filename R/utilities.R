@@ -17,7 +17,9 @@
 #' @return A tidySpatialExperiment object
 #'
 #' @noRd
-get_abundance_sc_wide <- function(.data, features = NULL, all = FALSE, assay = SummarizedExperiment::assays(.data) |> as.list() |> tail(1) |> names(),  prefix = "") {
+get_abundance_sc_wide <- function(.data, features = NULL, all = FALSE, 
+                                  assay = SummarizedExperiment::assays(.data) |> as.list() |> 
+                                  tail(1) |> names(),  prefix = "") {
 
     # Solve CRAN warnings
     . <- NULL
@@ -32,14 +34,15 @@ get_abundance_sc_wide <- function(.data, features = NULL, all = FALSE, assay = S
             is.null(features) &
             all == FALSE
     ) {
-        stop("
-              Your object does not contain variable feature labels,
-              feature argument is empty and all arguments are set to FALSE.
-              Either:
-              1. use detect_variable_features() to select variable feature
-              2. pass an array of feature names
-              3. set all=TRUE (this will output a very large object, does your computer have enough RAM?)
-              ")
+        stop(
+            "Your object does not contain variable feature labels,
+            feature argument is empty and all arguments are set to FALSE.
+            Either:
+            1. use detect_variable_features() to select variable feature
+            2. pass an array of feature names
+            3. set all=TRUE (this will output a very large object, does your computer have enough 
+            RAM?)"
+        )
     }
 
     # Get variable features if existing
@@ -68,7 +71,10 @@ get_abundance_sc_wide <- function(.data, features = NULL, all = FALSE, assay = S
                 lapply(`!`) |>
                 unlist() ~ 
                 (.)[features, , drop = FALSE],
-            ~ stop("It is not convenient to extract all genes, you should have either variable features or feature list to extract")
+            ~ stop(
+                "It is not convenient to extract all genes, you should have either variable features
+                or feature list to extract"
+            )
         ) |>
         as.matrix() |>
         t() |>
@@ -105,7 +111,8 @@ setMethod("cbind", "SpatialExperiment", function(..., deparse.level = 1) {
     # merge 'imgData' from multiple samples
     if (!is.null(imgData(args[[1]]))) { 
         newimgdata <- do.call(rbind, lapply(args, SpatialExperiment::imgData))
-        SingleCellExperiment::int_metadata(out)[names(SingleCellExperiment::int_metadata(out)) == "imgData"] <- NULL
+        SingleCellExperiment::int_metadata(out)[names(SingleCellExperiment::int_metadata(out)) == 
+                                                "imgData"] <- NULL
         SingleCellExperiment::int_metadata(out)$imgData <- newimgdata
     } 
     return(out)
@@ -145,14 +152,15 @@ get_abundance_sc_long <- function(.data, features = NULL, all = FALSE, exclude_z
             is.null(features) &
             all == FALSE
     ) {
-        stop("
-                Your object does not contain variable feature labels,
-                feature argument is empty and all arguments are set to FALSE.
-                Either:
-                1. use detect_variable_features() to select variable feature
-                2. pass an array of feature names
-                3. set all=TRUE (this will output a very large object, does your computer have enough RAM?)
-                ")
+        stop(
+            "Your object does not contain variable feature labels,
+            feature argument is empty and all arguments are set to FALSE.
+            Either:
+            1. use detect_variable_features() to select variable feature
+            2. pass an array of feature names
+            3. set all=TRUE (this will output a very large object, does your computer have enough 
+            RAM?)"
+        )
     }
 
     # Get variable features if existing
@@ -171,7 +179,9 @@ get_abundance_sc_long <- function(.data, features = NULL, all = FALSE, exclude_z
 
     # Check that I have assay manes
     if(length(assay_names) == 0)
-        stop("tidySpatialExperiment says: there are no assays names in the source SpatialExperiment.")
+        stop(
+            "tidySpatialExperiment says: there are no assays names in the source SpatialExperiment."
+        )
 
     assays(.data) |>
         as.list() |>
@@ -191,7 +201,10 @@ get_abundance_sc_long <- function(.data, features = NULL, all = FALSE, exclude_z
                             unlist() ~ 
                             x[toupper(rownames(x)) %in% toupper(features), , drop = FALSE],
                         all ~ x,
-                        ~ stop("It is not convenient to extract all genes, you should have either variable features or feature list to extract")
+                        ~ stop(
+                            "It is not convenient to extract all genes, you should have either 
+                            variable features or feature list to extract"
+                        )
                     ) |>
                     as.matrix() |>
                     DataFrame() |>
@@ -230,8 +243,8 @@ as_meta_data <- function(.data, SpatialExperiment_object) {
         # special_datasets_to_tibble(SpatialExperiment_object) |>
         get_special_columns(SpatialExperiment_object) |>
   
-        # I need this in case we have multiple reduced dimension data frames with overlapping names of the columns.
-        # For example multiple PCA versions
+        # I need this in case we have multiple reduced dimension data frames with overlapping names 
+        # of the columns. For example multiple PCA versions
         vctrs::vec_as_names(repair = "unique") |>
 
     # To avoid name change by the bind_cols of as_tibble
@@ -302,7 +315,8 @@ get_special_datasets <- function(SpatialExperiment_object, n_dimensions_to_retur
 # Key column names
 #' @importFrom S4Vectors metadata
 #' @importFrom S4Vectors metadata<-
-ping_old_special_column_into_metadata <- tidySingleCellExperiment:::ping_old_special_column_into_metadata
+ping_old_special_column_into_metadata <- 
+    tidySingleCellExperiment:::ping_old_special_column_into_metadata
 
 #' @importFrom S4Vectors metadata
 c_ <-  tidySingleCellExperiment:::c_
@@ -394,7 +408,8 @@ select_helper <- tidySingleCellExperiment:::select_helper
 #' @keywords internal
 #' @noRd
 #' 
-#' @description as_SummarizedExperiment creates a `SummarizedExperiment` object from a `tbl` or `tidybulk` tbl formatted as | <SAMPLE> | <TRANSCRIPT> | <COUNT> | <...> |
+#' @description as_SummarizedExperiment creates a `SummarizedExperiment` object from a `tbl` or 
+#' `tidybulk` tbl formatted as | <SAMPLE> | <TRANSCRIPT> | <COUNT> | <...> |
 #'
 #' @importFrom rlang enquo
 #' @importFrom rlang quo_name
@@ -417,7 +432,8 @@ as_SummarizedExperiment <- tidySingleCellExperiment:::as_SummarizedExperiment
 is_sample_feature_deprecated_used <- tidySingleCellExperiment:::is_sample_feature_deprecated_used
 
 #' @importFrom stringr str_replace_all
-trick_to_avoid_renaming_of_already_unique_columns_by_dplyr <- tidySingleCellExperiment:::trick_to_avoid_renaming_of_already_unique_columns_by_dplyr
+trick_to_avoid_renaming_of_already_unique_columns_by_dplyr <- 
+    tidySingleCellExperiment:::trick_to_avoid_renaming_of_already_unique_columns_by_dplyr
 
 # Inherited functions with no documentation
 get_special_column_name_cell <- tidySingleCellExperiment:::get_special_column_name_cell
@@ -427,5 +443,8 @@ special_datasets_to_tibble <- tidySingleCellExperiment:::special_datasets_to_tib
 prepend <- tidySingleCellExperiment:::prepend
 
 # Define messages
-data_frame_returned_message <- "tidySpatialExperiment says: A data frame is returned for independent data analysis."
-duplicated_cell_names <- "tidySpatialExperiment says: This operation lead to duplicated cell names. A data frame is returned for independent data analysis."
+data_frame_returned_message <- 
+    "tidySpatialExperiment says: A data frame is returned for independent data analysis."
+duplicated_cell_names <- 
+    "tidySpatialExperiment says: This operation lead to duplicated cell names. A data frame is 
+    returned for independent data analysis."

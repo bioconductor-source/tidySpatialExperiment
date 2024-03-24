@@ -1,5 +1,4 @@
 context("tidyr test")
-
 example(read10xVisium)
 
 test_that("nest", {
