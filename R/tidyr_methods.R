@@ -32,7 +32,8 @@ unnest.tidySpatialExperiment_nested <- function(data, cols, ..., keep_empty = FA
 #' @importFrom methods is
 #' @export
 unnest_single_cell_experiment  <-  function(data, cols, ..., keep_empty = FALSE, ptype = NULL,
-                                            names_sep = NULL, names_repair = "check_unique", .drop, .id, .sep, .preserve) {
+                                            names_sep = NULL, names_repair = "check_unique", .drop, 
+                                            .id, .sep, .preserve) {
     
     # Fix CRAN warnings 
     . <- NULL
@@ -57,7 +58,10 @@ unnest_single_cell_experiment  <-  function(data, cols, ..., keep_empty = FALSE,
     } else {
         .data_ |>
             drop_class("tidySpatialExperiment_nested") |>
-            tidyr::unnest(!!cols, ..., keep_empty = keep_empty, ptype = ptype, names_sep = names_sep, names_repair = names_repair) |>
+            tidyr::unnest(
+                !!cols, ..., keep_empty = keep_empty, ptype = ptype, names_sep = names_sep, 
+                names_repair = names_repair
+            ) |>
             add_class("tidySpatialExperiment_nested")
     }
 }
@@ -78,6 +82,7 @@ unnest_single_cell_experiment  <-  function(data, cols, ..., keep_empty = FALSE,
 #' @importFrom rlang sym
 #' @export
 nest.SpatialExperiment <- function(.data, ..., .names_sep = NULL) {
+  
     cols <- enquos(...)
     col_name_data <- names(cols)
 
@@ -135,7 +140,9 @@ extract.SpatialExperiment <- function(data, col, into, regex = "([[:alnum:]]+)",
     colData(data) <-
         data |>
         as_tibble() |>
-        tidyr::extract(col = !!col, into = into, regex = regex, remove = remove, convert = convert, ...) |>
+        tidyr::extract(
+            col = !!col, into = into, regex = regex, remove = remove, convert = convert, ...
+        ) |>
         as_meta_data(data)
     
     data
@@ -185,7 +192,8 @@ unite.SpatialExperiment <- function(data, col, ..., sep = "_", remove = TRUE, na
         stop(
             "tidySpatialExperiment says: you are trying to rename a column that is view only",
             columns, " ",
-            "(it is not present in the colData). If you want to mutate a view-only column, make a copy and mutate that one."
+            "(it is not present in the colData). If you want to mutate a view-only column, make a 
+            copy and mutate that one."
         )
     }
 
@@ -242,14 +250,18 @@ separate.SpatialExperiment <- function(data, col, into, sep = "[^[:alnum:]]+", r
         stop(
             "tidySpatialExperiment says: you are trying to rename a column that is view only",
             columns, " ",
-            "(it is not present in the colData). If you want to mutate a view-only column, make a copy and mutate that one."
+            "(it is not present in the colData). If you want to mutate a view-only column, make a 
+            copy and mutate that one."
         )
     }
 
     colData(data) <-
         data |>
         as_tibble() |>
-        tidyr::separate(!!cols, into = into, sep = sep, remove = remove, convert = convert, extra = extra, fill = fill, ...) |>
+        tidyr::separate(
+            !!cols, into = into, sep = sep, remove = remove, convert = convert, extra = extra, 
+            fill = fill, ...
+        ) |>
         as_meta_data(data)
 
     data

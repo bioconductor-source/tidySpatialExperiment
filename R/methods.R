@@ -56,18 +56,18 @@ NULL
 #'
 #' @keywords internal
 #' @noRd
-setMethod("join_features", "SpatialExperiment",  function(.data,
-                                               features = NULL,
-                                               all = FALSE,
-                                               exclude_zeros = FALSE,
-                                               shape = "long", ...
-                                               ) {
+setMethod("join_features", "SpatialExperiment", function(.data, features = NULL, all = FALSE,
+                                                        exclude_zeros = FALSE, shape = "long", 
+                                                        ...) {
 
         # Shape is long
         if (shape == "long") {
             
             # Print message about changing data type
-            message("tidySpatialExperiment says: A data frame is returned for independent data analysis.")
+            message(
+                "tidySpatialExperiment says: A data frame is returned for independent data 
+                analysis."
+            )
           
             # Join feature abundance with colData by index
             .data |>
@@ -133,7 +133,8 @@ setMethod("join_features", "SpatialExperiment",  function(.data,
 #'     aggregate_cells(sample_id, assays = "counts")
 #'
 #' @export
-aggregate_cells <- function(.data, .sample = NULL, slot = "data", assays = NULL, aggregation_function = rowSums) {
+aggregate_cells <- function(.data, .sample = NULL, slot = "data", assays = NULL, 
+                            aggregation_function = rowSums) {
   
     # Solve CRAN warnings
     feature <- NULL
@@ -177,7 +178,9 @@ aggregate_cells <- function(.data, .sample = NULL, slot = "data", assays = NULL,
     
     drop_class("tidySpatialExperiment_nested") |> 
     
-    as_SummarizedExperiment(.sample = !!.sample, .transcript = feature, .abundance = !!as.symbol(names(.data@assays)))
+    as_SummarizedExperiment(
+        .sample = !!.sample, .transcript = feature, .abundance = !!as.symbol(names(.data@assays))
+    )
 }
 
 #' Rectangle Gating Function
@@ -225,7 +228,8 @@ rectangle <- function(spatial_coord1, spatial_coord2, center, height, width) {
 #' @param spatial_coord1 Numeric vector for x-coordinates
 #' @param spatial_coord2 Numeric vector for y-coordinates
 #' @param center Numeric vector (length 2) for ellipse center (x, y)
-#' @param axes_lengths Numeric vector (length 2) for the lengths of the major and minor axes of the ellipse
+#' @param axes_lengths Numeric vector (length 2) for the lengths of the major and minor axes of the
+#' ellipse
 #' @return Logical vector indicating points within the ellipse
 #' @examples
 #' example(read10xVisium)

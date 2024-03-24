@@ -1,5 +1,4 @@
 context("dplyr test")
-
 example(read10xVisium)
 
 test_that("arrange", {
