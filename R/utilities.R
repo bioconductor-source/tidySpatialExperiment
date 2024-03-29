@@ -339,16 +339,6 @@ gt <- function(a, b) {
 #' @return A tibble with an additional attribute
 add_attr <- tidySingleCellExperiment:::add_attr
 
-#' @importFrom tibble as_tibble
-#' @importFrom SummarizedExperiment colData
-#'
-#' @keywords internal
-#'
-#' @param .data A tidySpatialExperiment
-#'
-#' @noRd
-to_tib <- tidySingleCellExperiment:::to_tib
-
 #' Subset columns
 #'
 #' @keywords internal
