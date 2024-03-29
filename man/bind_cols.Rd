@@ -55,6 +55,6 @@ appears in any of the inputs.
 \examples{
 example(read10xVisium)
 spe |>
-   bind_cols(1:99)
+    bind_cols(1:99)
 
 }

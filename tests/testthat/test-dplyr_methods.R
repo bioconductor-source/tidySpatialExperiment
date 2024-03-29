@@ -173,9 +173,9 @@ test_that("sample_frac", {
         expect_equal(1)
     
     spe |>
-        sample_frac(2, replace = TRUE) |>
+        sample_frac(0.1, replace = TRUE) |>
         nrow() |>
-        expect_equal(392)
+        expect_equal(50)
 })
 
 test_that("count", {

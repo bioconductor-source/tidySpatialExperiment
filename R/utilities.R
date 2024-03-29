@@ -21,10 +21,9 @@ get_abundance_sc_wide <- function(.data, features = NULL, all = FALSE,
                                   assay = SummarizedExperiment::assays(.data) |> as.list() |> 
                                   tail(1) |> names(),  prefix = "") {
 
-    # Solve CRAN warnings
-    . <- NULL
+    # Define unbound variable
     index <- NULL
-
+  
     # For SCE there is not filed for variable features
     variable_feature <- c()
 
@@ -96,19 +95,14 @@ get_abundance_sc_wide <- function(.data, features = NULL, all = FALSE,
 #' @noRd
 setMethod("cbind", "SpatialExperiment", function(..., deparse.level = 1) {
   
-    old <- S4Vectors:::disableValidity()
-    if (!isTRUE(old)) {
-        S4Vectors:::disableValidity(TRUE)
-        on.exit(S4Vectors:::disableValidity(old))
-    }
     args <- list(...)
     
-    # bind SPEs
+    # Bind SpatialExperiment objects
     out <- do.call(
         methods::callNextMethod, 
         c(args, list(deparse.level=1)))
     
-    # merge 'imgData' from multiple samples
+    # Merge 'imgData'
     if (!is.null(imgData(args[[1]]))) { 
         newimgdata <- do.call(rbind, lapply(args, SpatialExperiment::imgData))
         SingleCellExperiment::int_metadata(out)[names(SingleCellExperiment::int_metadata(out)) == 
@@ -138,11 +132,9 @@ setMethod("cbind", "SpatialExperiment", function(..., deparse.level = 1) {
 #' @noRd
 get_abundance_sc_long <- function(.data, features = NULL, all = FALSE, exclude_zeros = FALSE) {
 
-    # Solve CRAN warnings
+    # Define unbound variable
     .feature <- NULL
-    . <- NULL
     
-
     # For SCE there is not filed for variable features
     variable_feature <- c()
 
@@ -224,7 +216,6 @@ get_abundance_sc_long <- function(.data, features = NULL, all = FALSE, exclude_z
         reduce(function(...) full_join(..., by = c(".feature", c_(.data)$name)))
 }
 
-#' @importFrom dplyr select_if
 #' @importFrom S4Vectors DataFrame
 #'
 #' @keywords internal
@@ -234,9 +225,6 @@ get_abundance_sc_long <- function(.data, features = NULL, all = FALSE, exclude_z
 #'
 #' @noRd
 as_meta_data <- function(.data, SpatialExperiment_object) {
-
-    # Solve CRAN warnings
-    . <- NULL
 
     col_to_exclude <-
 
@@ -307,9 +295,22 @@ get_special_datasets <- function(SpatialExperiment_object, n_dimensions_to_retur
       })
     
     spatial_coordinates <- 
-      SpatialExperiment::spatialCoords(SpatialExperiment_object)
+        SpatialExperiment::spatialCoords(SpatialExperiment_object)
     
     list(reduced_dimensions, spatial_coordinates)
+}
+
+#' @importFrom dplyr select
+#' @importFrom rlang expr
+#' @importFrom tidyselect eval_select
+#' @importFrom tidyselect all_of
+#' 
+#' @keywords internal
+#' @noRd
+select_helper <- function(.data, ...) {
+  
+  loc <- tidyselect::eval_select(rlang::expr(c(...)), .data)
+  dplyr::select(.data, tidyselect::all_of(loc))
 }
 
 # Key column names
@@ -386,12 +387,6 @@ drop_class <- tidySingleCellExperiment:::drop_class
 #'
 #' @return A character vector
 quo_names <- tidySingleCellExperiment:::quo_names
-
-#' @importFrom purrr when
-#' @importFrom dplyr select
-#' @importFrom rlang expr
-#' @importFrom tidyselect eval_select
-select_helper <- tidySingleCellExperiment:::select_helper
 
 #' as_SummarizedExperiment
 #'

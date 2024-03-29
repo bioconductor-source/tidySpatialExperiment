@@ -13,7 +13,8 @@ ellipse(spatial_coord1, spatial_coord2, center, axes_lengths)
 
 \item{center}{Numeric vector (length 2) for ellipse center (x, y)}
 
-\item{axes_lengths}{Numeric vector (length 2) for the lengths of the major and minor axes of the ellipse}
+\item{axes_lengths}{Numeric vector (length 2) for the lengths of the major and minor axes of the
+ellipse}
 }
 \value{
 Logical vector indicating points within the ellipse
