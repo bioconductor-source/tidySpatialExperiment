@@ -59,52 +59,55 @@ NULL
 setMethod("join_features", "SpatialExperiment", function(.data, features = NULL, all = FALSE,
                                                         exclude_zeros = FALSE, shape = "long", 
                                                         ...) {
+      
+      # Define unbound variable
+      index <- NULL
 
-        # Shape is long
-        if (shape == "long") {
-            
-            # Print message about changing data type
-            message(
-                "tidySpatialExperiment says: A data frame is returned for independent data 
-                analysis."
-            )
+      # Shape is long
+      if (shape == "long") {
           
-            # Join feature abundance with colData by index
-            .data |>
-                colData() |>
-                tibble::as_tibble(rownames = c_(.data)$name) |>
-                tibble::rowid_to_column("index") |>
-                dplyr::mutate(index = as.character(index)) |>
-                dplyr::left_join(
-                    get_abundance_sc_long(
-                        .data = .data,
-                        features = features,
-                        all = all,
-                        exclude_zeros = exclude_zeros
-                    ),
-                    by = "index"
-                ) |>
-                dplyr::mutate("index" = NULL)
+          # Print message about changing data type
+          message(
+              "tidySpatialExperiment says: A data frame is returned for independent data 
+              analysis."
+          )
         
-        # Shape is wide
-        } else {
-          colData(.data) <- 
-            .data |>
-                colData() |>
-                tibble::as_tibble(rownames = c_(.data)$name) |>
-                tibble::rowid_to_column("index") |>
-                dplyr::mutate(index = as.character(index)) |>
-                left_join(
-                    get_abundance_sc_wide(
-                        .data = .data,
-                        features = features,
-                        all = all, ...
-                    ),
-                    by = "index") |>
-                dplyr::mutate("index" = NULL) |>
-                as_meta_data(.data)
-            .data
-        } 
+          # Join feature abundance with colData by index
+          .data |>
+              colData() |>
+              tibble::as_tibble(rownames = c_(.data)$name) |>
+              tibble::rowid_to_column("index") |>
+              dplyr::mutate(index = as.character(index)) |>
+              dplyr::left_join(
+                  get_abundance_sc_long(
+                      .data = .data,
+                      features = features,
+                      all = all,
+                      exclude_zeros = exclude_zeros
+                  ),
+                  by = "index"
+              ) |>
+              dplyr::mutate("index" = NULL)
+      
+      # Shape is wide
+      } else {
+        colData(.data) <- 
+          .data |>
+              colData() |>
+              tibble::as_tibble(rownames = c_(.data)$name) |>
+              tibble::rowid_to_column("index") |>
+              dplyr::mutate(index = as.character(index)) |>
+              left_join(
+                  get_abundance_sc_wide(
+                      .data = .data,
+                      features = features,
+                      all = all, ...
+                  ),
+                  by = "index") |>
+              dplyr::mutate("index" = NULL) |>
+              as_meta_data(.data)
+          .data
+      } 
 })
 
 #' Aggregate cells
@@ -136,9 +139,8 @@ setMethod("join_features", "SpatialExperiment", function(.data, features = NULL,
 aggregate_cells <- function(.data, .sample = NULL, slot = "data", assays = NULL, 
                             aggregation_function = rowSums) {
   
-    # Solve CRAN warnings
+    # Declare unbound variables
     feature <- NULL
-    
     .sample <- enquo(.sample)
     
     # Subset only wanted assays
@@ -151,21 +153,21 @@ aggregate_cells <- function(.data, .sample = NULL, slot = "data", assays = NULL,
         nest(data = -!!.sample) |>
         mutate(.aggregated_cells = as.integer(map(data, ~ ncol(.x)))) |>
         mutate(data = map(data, ~ 
-                          
-                          # loop over assays
-                          map2(
-                              as.list(assays(.x)), names(.x@assays),
-                              
-                              # Get counts
-                              ~  .x |>
-                                aggregation_function(na.rm = TRUE) |>
-                                enframe(
-                                    name  = "feature",
-                                    value = sprintf("%s", .y)
-                                ) |>
-                                mutate(feature = as.character(feature)) 
-                          ) |>
-                          reduce(function(...) dplyr::full_join(..., by = c("feature")))
+            
+            # loop over assays
+            map2(
+                as.list(assays(.x)), names(.x@assays),
+                
+                # Get counts
+                ~  .x |>
+                  aggregation_function(na.rm = TRUE) |>
+                  enframe(
+                      name  = "feature",
+                      value = sprintf("%s", .y)
+                  ) |>
+                  mutate(feature = as.character(feature)) 
+            ) |>
+            reduce(function(...) dplyr::full_join(..., by = c("feature")))
 
         )) |>
         left_join(

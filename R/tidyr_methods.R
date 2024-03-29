@@ -34,10 +34,7 @@ unnest.tidySpatialExperiment_nested <- function(data, cols, ..., keep_empty = FA
 unnest_single_cell_experiment  <-  function(data, cols, ..., keep_empty = FALSE, ptype = NULL,
                                             names_sep = NULL, names_repair = "check_unique", .drop, 
                                             .id, .sep, .preserve) {
-    
-    # Fix CRAN warnings 
-    . <- NULL
-    
+
     # Need this otherwise crashes map
     .data_ <- data
     cols <- enquo(cols)
