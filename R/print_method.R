@@ -2,15 +2,13 @@
 #' @rdname tbl_format_header
 #' @inherit pillar::tbl_format_header
 #' 
-#' @examples
-#' # TODO
-#' 
 #' @importFrom rlang names2
 #' @importFrom pillar align
 #' @importFrom pillar get_extent
 #' @importFrom pillar style_subtle
 #' @importFrom pillar tbl_format_header
-#' @export
+#' @keywords internal
+#' @noRd
 tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
 
     number_of_features <- x |> attr("number_of_features")
@@ -48,7 +46,7 @@ tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
 #' @aliases print
 #' @inherit tibble::formatting
 #' @return Prints a message to the console describing
-#'   the contents of the `tidySingleCellExperiment`.
+#'   the contents of the `tidySpatialExperiment`.
 #'
 #' @examples
 #' example(read10xVisium)
@@ -65,7 +63,7 @@ print.SpatialExperiment <- function(x, ..., n = NULL, width = NULL) {
         new_data_frame(class = c("tidySpatialExperiment", "tbl")) |>
         add_attr(nrow(x), "number_of_features") |>
         add_attr(assays(x) |> names(), "assay_names") |>
-        print()
+        print(n = n, width = width, ...)
   
     invisible(x)
 }
