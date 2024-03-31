@@ -2,18 +2,19 @@
 #' @rdname tbl_format_header
 #' @inherit pillar::tbl_format_header
 #' 
+#' @examples
+#' # TODO
+#' 
 #' @importFrom rlang names2
 #' @importFrom pillar align
 #' @importFrom pillar get_extent
 #' @importFrom pillar style_subtle
 #' @importFrom pillar tbl_format_header
-#' @keywords internal
-#' @noRd
+#' @export
 tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
 
     number_of_features <- x |> attr("number_of_features")
     assay_names <- x |> attr("assay_names")
-  
     named_header <- setup$tbl_sum
   
     # Change name
@@ -31,10 +32,10 @@ tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
       
             # Add further info single-cell
             append(sprintf(
-                "\033[90m Features=%s | Cells=%s | Assays=%s\033[39m",
+                "\033[90m Features = %s | Cells = %s | Assays = %s\033[39m",
                 number_of_features,
                 nrow(x),
-                assay_names |> paste(collapse=", ")
+                assay_names |> paste(collapse = ", ")
             ), after = 1)
     }
   
@@ -57,7 +58,7 @@ tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
 #' @importFrom SummarizedExperiment assayNames
 #' @export
 print.SpatialExperiment <- function(x, ..., n = NULL, width = NULL) {
-
+  
     x |>
         as_tibble(n_dimensions_to_return = 5) |>
         new_data_frame(class = c("tidySpatialExperiment", "tbl")) |>
