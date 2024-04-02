@@ -15,7 +15,6 @@ tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
 
     number_of_features <- x |> attr("number_of_features")
     assay_names <- x |> attr("assay_names")
-  
     named_header <- setup$tbl_sum
   
     # Change name
@@ -29,14 +28,14 @@ tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
                 align(paste0(names2(named_header), ":"), space = NBSP),
                 " ",
                 named_header
-            ) %>%
+            ) |>
       
             # Add further info single-cell
             append(sprintf(
-                "\033[90m Features=%s | Cells=%s | Assays=%s\033[39m",
+                "\033[90m Features = %s | Cells = %s | Assays = %s\033[39m",
                 number_of_features,
                 nrow(x),
-                assay_names %>% paste(collapse=", ")
+                assay_names |> paste(collapse = ", ")
             ), after = 1)
     }
   
@@ -48,7 +47,7 @@ tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
 #' @aliases print
 #' @inherit tibble::formatting
 #' @return Prints a message to the console describing
-#'   the contents of the `tidySingleCellExperiment`.
+#'   the contents of the `tidySpatialExperiment`.
 #'
 #' @examples
 #' example(read10xVisium)
@@ -59,13 +58,13 @@ tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
 #' @importFrom SummarizedExperiment assayNames
 #' @export
 print.SpatialExperiment <- function(x, ..., n = NULL, width = NULL) {
-
+  
     x |>
         as_tibble(n_dimensions_to_return = 5) |>
-        new_data_frame(class = c("tidySpatialExperiment", "tbl")) %>%
-        add_attr(nrow(x), "number_of_features") %>%
-        add_attr(assays(x) %>% names, "assay_names") %>%
-        print()
+        new_data_frame(class = c("tidySpatialExperiment", "tbl")) |>
+        add_attr(nrow(x), "number_of_features") |>
+        add_attr(assays(x) |> names(), "assay_names") |>
+        print(n = n, width = width, ...)
   
     invisible(x)
 }

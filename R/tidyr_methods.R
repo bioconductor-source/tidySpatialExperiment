@@ -28,35 +28,37 @@ unnest.tidySpatialExperiment_nested <- function(data, cols, ..., keep_empty = FA
 #' @importFrom purrr reduce
 #' @importFrom purrr when
 #' @importFrom purrr imap
+#' @importFrom purrr pluck
 #' @importFrom methods is
 #' @export
 unnest_single_cell_experiment  <-  function(data, cols, ..., keep_empty = FALSE, ptype = NULL,
-                                            names_sep = NULL, names_repair = "check_unique", .drop, .id, .sep, .preserve) {
-    
-    # Fix CRAN warnings 
-    . <- NULL
-    
+                                            names_sep = NULL, names_repair = "check_unique", .drop, 
+                                            .id, .sep, .preserve) {
+
     # Need this otherwise crashes map
     .data_ <- data
     cols <- enquo(cols)
     
     # Bind nested SpatialExperiment objects
     if (
-        .data_ %>% 
-            pull(!!cols) %>%
-            .[[1]] %>%
-            is("SpatialExperiment") %>%
+        .data_ |> 
+            pull(!!cols) |>
+            pluck(1) |>
+            is("SpatialExperiment") |>
             any()
     ) {
-        .data_ %>%
-            pull(!!cols) %>%
+        .data_ |>
+            pull(!!cols) |>
             reduce(bind_rows)
       
     # Otherwise perform a normal unnest
     } else {
-        .data_ %>%
-            drop_class("tidySpatialExperiment_nested") %>%
-            tidyr::unnest(!!cols, ..., keep_empty = keep_empty, ptype = ptype, names_sep = names_sep, names_repair = names_repair) %>%
+        .data_ |>
+            drop_class("tidySpatialExperiment_nested") |>
+            tidyr::unnest(
+                !!cols, ..., keep_empty = keep_empty, ptype = ptype, names_sep = names_sep, 
+                names_repair = names_repair
+            ) |>
             add_class("tidySpatialExperiment_nested")
     }
 }
@@ -77,29 +79,30 @@ unnest_single_cell_experiment  <-  function(data, cols, ..., keep_empty = FALSE,
 #' @importFrom rlang sym
 #' @export
 nest.SpatialExperiment <- function(.data, ..., .names_sep = NULL) {
+  
     cols <- enquos(...)
     col_name_data <- names(cols)
 
     # Deprecation of special column names
     if (is_sample_feature_deprecated_used(
         .data,
-        (enquos(..., .ignore_empty = "all") %>% map(~ quo_name(.x)) %>% unlist)
+        (enquos(..., .ignore_empty = "all") |> map(~ quo_name(.x)) |> unlist())
     )) {
         .data <- ping_old_special_column_into_metadata(.data)
     }
 
     my_data__ <- .data
     
-    my_data__ %>%
-        as_tibble() %>%
+    my_data__ |>
+        as_tibble() |>
       
         # Add index column to allow tracking of nested cells
-        rowid_to_column("index") %>%
+        rowid_to_column("index") |>
         tidyr::nest(...) |>
         
         # Use index to subset cells from original SpatialExperiment object
-        mutate(!!sym(col_name_data) := map(!!sym(col_name_data), ~ .x %>% pull(index))) %>%
-        mutate(!!sym(col_name_data) := map(!!sym(col_name_data), ~ my_data__[, .x])) %>% 
+        mutate(!!sym(col_name_data) := map(!!sym(col_name_data), ~ .x |> pull(index))) |>
+        mutate(!!sym(col_name_data) := map(!!sym(col_name_data), ~ my_data__[, .x])) |> 
     
         # Coerce to tidySpatialExperiment_nested for unnesting
         add_class("tidySpatialExperiment_nested")
@@ -132,9 +135,11 @@ extract.SpatialExperiment <- function(data, col, into, regex = "([[:alnum:]]+)",
     }
 
     colData(data) <-
-        data %>%
-        as_tibble() %>%
-        tidyr::extract(col = !!col, into = into, regex = regex, remove = remove, convert = convert, ...) %>%
+        data |>
+        as_tibble() |>
+        tidyr::extract(
+            col = !!col, into = into, regex = regex, remove = remove, convert = convert, ...
+        ) |>
         as_meta_data(data)
     
     data
@@ -162,35 +167,36 @@ unite.SpatialExperiment <- function(data, col, ..., sep = "_", remove = TRUE, na
     # Deprecation of special column names
     if (is_sample_feature_deprecated_used(
         data,
-        (enquos(..., .ignore_empty = "all") %>% map(~ quo_name(.x)) %>% unlist)
+        (enquos(..., .ignore_empty = "all") |> map(~ quo_name(.x)) |> unlist())
     )) {
       data <- ping_old_special_column_into_metadata(data)
     }
 
     tst <-
         intersect(
-            cols %>% quo_names(),
-            get_special_columns(data) %>% c(get_needed_columns(data))
-        ) %>%
-        length() %>%
+            cols |> quo_names(),
+            get_special_columns(data) |> c(get_needed_columns(data))
+        ) |>
+        length() |>
         gt(0) &
         remove
 
     if (tst) {
         columns <-
-            get_special_columns(data) %>%
-            c(get_needed_columns(data)) %>%
+            get_special_columns(data) |>
+            c(get_needed_columns(data)) |>
             paste(collapse = ", ")
         stop(
             "tidySpatialExperiment says: you are trying to rename a column that is view only",
             columns, " ",
-            "(it is not present in the colData). If you want to mutate a view-only column, make a copy and mutate that one."
+            "(it is not present in the colData). If you want to mutate a view-only column, make a 
+            copy and mutate that one."
         )
     }
 
-    colData(data) <- data %>%
-        as_tibble() %>%
-        tidyr::unite(!!cols, ..., sep = sep, remove = remove, na.rm = na.rm) %>%
+    colData(data) <- data |>
+        as_tibble() |>
+        tidyr::unite(!!cols, ..., sep = sep, remove = remove, na.rm = na.rm) |>
         as_meta_data(data)
 
     data
@@ -226,29 +232,33 @@ separate.SpatialExperiment <- function(data, col, into, sep = "[^[:alnum:]]+", r
 
     tst <-
         intersect(
-            cols %>% quo_names(),
-            get_special_columns(data) %>% c(get_needed_columns(data))
-        ) %>%
-        length() %>%
+            cols |> quo_names(),
+            get_special_columns(data) |> c(get_needed_columns(data))
+        ) |>
+        length() |>
         gt(0) &
         remove
 
     if (tst) {
         columns <-
-            get_special_columns(data) %>%
-            c(get_needed_columns(data)) %>%
+            get_special_columns(data) |>
+            c(get_needed_columns(data)) |>
             paste(collapse = ", ")
         stop(
             "tidySpatialExperiment says: you are trying to rename a column that is view only",
             columns, " ",
-            "(it is not present in the colData). If you want to mutate a view-only column, make a copy and mutate that one."
+            "(it is not present in the colData). If you want to mutate a view-only column, make a 
+            copy and mutate that one."
         )
     }
 
     colData(data) <-
-        data %>%
-        as_tibble() %>%
-        tidyr::separate(!!cols, into = into, sep = sep, remove = remove, convert = convert, extra = extra, fill = fill, ...) %>%
+        data |>
+        as_tibble() |>
+        tidyr::separate(
+            !!cols, into = into, sep = sep, remove = remove, convert = convert, extra = extra, 
+            fill = fill, ...
+        ) |>
         as_meta_data(data)
 
     data
