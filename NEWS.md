@@ -20,7 +20,7 @@
 # tidySpatialExperiment 0.99.13
 
 * Removed unneeded dependencies. 
-* Updated README and vignette material.
+* Improved README and vignette material.
 
 # tidySpatialExperiment 0.99.14
 
@@ -44,8 +44,16 @@
 
 # tidySpatialExperiment 0.99.19
 
-* Improve code style.
+* Improved code style.
 
 # tidySpatialExperiment 0.99.20
 
-* tidySpatialExperiment is now in Bioconductor. Documentation has been updated accordingly. 
+* tidySpatialExperiment is now in Bioconductor! Documentation has been updated accordingly. 
+
+# tidySpatialExperiment 0.99.21
+
+* Improved code style.
+* Removed magrittr pipe. 
+* Removed unneeded dependencies. 
+* Improved README and vignette material.
+* Bug fixes.
