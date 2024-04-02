@@ -1,7 +1,12 @@
 Type: Package
 Package: tidySpatialExperiment
+<<<<<<< HEAD
 Title: Brings SpatialExperiment to the tidyverse 
 Version: 1.1.0
+=======
+Title: SpatialExperiment with tidy principles 
+Version: 0.99.21
+>>>>>>> 68c8a6c (Version up)
 Authors@R: c(
     person("William", "Hutchison", email = "hutchison.w@wehi.edu.au", role = c("aut", "cre"), 
            comment = c(ORCID = "0009-0001-6242-4269")),
