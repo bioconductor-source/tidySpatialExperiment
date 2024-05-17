@@ -50,3 +50,6 @@ spe |>
     ggplot(ggplot2::aes(x = .cell, y = array_row)) +
     ggplot2::geom_point()
 }
+\seealso{
+The \href{https://ggplot2-book.org/getting-started}{first steps chapter} of the online ggplot2 book.
+}

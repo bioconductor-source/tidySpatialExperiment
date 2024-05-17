@@ -57,3 +57,7 @@
 * Removed unneeded dependencies. 
 * Improved README and vignette material.
 * Bug fixes.
+
+# tidySpatialExperiment 1.0.1
+
+* Greatly improved interactive gating, facilitated via tidygate. 

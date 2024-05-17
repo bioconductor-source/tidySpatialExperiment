@@ -236,8 +236,8 @@ rectangle <- function(spatial_coord1, spatial_coord2, center, height, width) {
 #' @examples
 #' example(read10xVisium)
 #' spe |>
-#'   mutate(in_ellipse = ellipse(
-#'     array_col, array_row, center = c(50, 50), axes_lengths = c(20, 10))
+#'     mutate(in_ellipse = ellipse(
+#'         array_col, array_row, center = c(50, 50), axes_lengths = c(20, 10))
 #'     )
 #'     
 #' @export
@@ -257,3 +257,119 @@ ellipse <- function(spatial_coord1, spatial_coord2, center, axes_lengths) {
 
     return(within_ellipse)
 }
+
+#' Gate spatial
+#' 
+#' Interactively gate points by their location in space, with image data overlaid. 
+#' 
+#' @importFrom tibble tibble
+#' @importFrom dplyr mutate
+#' @importFrom magick image_read
+#' @importFrom magick image_info
+#' @importFrom plotly raster2uri
+#' @importFrom plotly ggplotly
+#' @importFrom plotly layout
+#' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 aes
+#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 coord_cartesian
+#' @importFrom SpatialExperiment imgData
+#' @importFrom SpatialExperiment imgRaster
+#' @importFrom SpatialExperiment imgSource
+#' @importFrom shiny shinyApp
+#' @importFrom shiny runApp
+#' @importFrom tidygate ui
+#' @importFrom tidygate server
+#' @examples
+#' \dontrun{
+#' example(read10xVisium)
+#' spe |>
+#'     mutate(in_gates = gate_spatial(spe)
+#' }
+#' @param spe A SpatialExperiment object
+#' @param image_index The image to display if multiple are stored within the provided
+#' SpatialExperiment object. 
+#' @return A vector with TRUE for elements inside gate points and FALSE for elements outside gate 
+#' points. A record of the selected points is stored in `tidygate_env$select_data` and a 
+#' record of the gates is stored in `tidygate_env$brush_data`.
+#' @export
+gate_spatial <-
+  
+  function(spe, image_index = 1) {
+    
+    print("tidySpatialExperiment says: this feature is in early development and may undergo changes or contain bugs.")
+    
+    # Create tibble with necessary information
+    data <- 
+      tibble::tibble(
+        dimension_x = 
+          spe |>
+          pull(pxl_col_in_fullres), 
+        dimension_y = 
+          spe |>
+          pull(pxl_row_in_fullres)
+      ) |>
+      dplyr::mutate(.key = dplyr::row_number()) |>
+      dplyr::mutate(.selected = FALSE)
+    
+    # Prepare spatial information
+    image <- 
+      SpatialExperiment::imgData(spe)[1, ]@listData$data[[1]] |>
+      SpatialExperiment::imgSource() |>
+      magick::image_read()
+    
+    image_x_size <- 
+      magick::image_info(image)$width /
+      SpatialExperiment::imgData(spe)[image_index, ]@listData$scaleFactor
+    
+    image_y_size <- 
+      magick::image_info(image)$height /
+      SpatialExperiment::imgData(spe)[image_index, ]@listData$scaleFactor
+    
+    image_uri <- 
+      SpatialExperiment::imgData(spe)[image_index, ]@listData$data[[1]] |>
+      SpatialExperiment::imgRaster() |>
+      plotly::raster2uri()
+    
+    # Create plot 
+    spatial_plot <-
+      data |>
+      ggplot2::ggplot(ggplot2::aes(x = dimension_x, y = dimension_y, key = .key)) +
+      ggplot2::geom_point() +
+      ggplot2::coord_cartesian(
+        xlim =  c(0, image_x_size), 
+        ylim = c(0, image_y_size), 
+        expand = FALSE
+      )
+    
+    spatial_plot <- 
+      spatial_plot |>
+      plotly::ggplotly() |>
+      plotly::layout(images = list(
+        list(
+          source = image_uri,
+          xref = "x",
+          yref = "y",
+          x = 0,
+          y = image_y_size,
+          sizex = image_x_size,
+          sizey = image_y_size,
+          sizing = "stretch",
+          opacity = 1,
+          layer = "below"
+        )
+      ))
+    
+    # Create environment and save input variables
+    tidygate_env <<- rlang::env()
+    tidygate_env$input_data <- data
+    tidygate_env$dimension_x <- data$dimension_x
+    tidygate_env$dimension_y <- data$dimension_y
+    tidygate_env$custom_plot <- spatial_plot
+    
+    # Launch Shiny App
+    app <- shiny::shinyApp(tidygate::ui, tidygate::server)
+    shiny::runApp(app, port = 1234)
+    
+    return(tidygate_env$select_data$.selected)
+  }
