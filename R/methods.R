@@ -298,7 +298,7 @@ ellipse <- function(spatial_coord1, spatial_coord2, center, axes_lengths) {
 #' @export
 gate_spatial <-
   
-  function(spe, image_index = 1, opacity = 1) {
+  function(spe, image_index = 1, opacity = 1, size = 1) {
     
     print("tidySpatialExperiment says: this feature is in early development and may undergo changes or contain bugs.")
     
@@ -338,13 +338,14 @@ gate_spatial <-
     spatial_plot <-
       data |>
       ggplot2::ggplot(ggplot2::aes(x = dimension_x, y = dimension_y, key = .key)) +
-      ggplot2::geom_point(alpha = opacity) +
-      ggplot2::coord_cartesian(
+      ggplot2::geom_point(alpha = opacity, size = size) +
+      ggplot2::coord_fixed(
         xlim =  c(0, image_x_size), 
-        ylim = c(0, image_y_size), 
-        expand = FALSE
+        ylim = rev(c(0, image_y_size)), 
+        expand = FALSE,
+        ratio = 1
       )
-    
+
     spatial_plot <- 
       spatial_plot |>
       plotly::ggplotly() |>
@@ -354,7 +355,7 @@ gate_spatial <-
           xref = "x",
           yref = "y",
           x = 0,
-          y = image_y_size,
+          y = 0,
           sizex = image_x_size,
           sizey = image_y_size,
           sizing = "stretch",
@@ -374,7 +375,7 @@ gate_spatial <-
     app <- shiny::shinyApp(tidygate::ui, tidygate::server)
     shiny::runApp(app, port = 1234)
     
-    spe$.selected <- tidygate_env$select_data$.selected 
+    spe$.gate <- tidygate_env$select_data$.selected 
     
     return(spe)
   }

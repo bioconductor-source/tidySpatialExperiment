@@ -4,7 +4,7 @@
 \alias{gate_spatial}
 \title{Gate spatial}
 \usage{
-gate_spatial(spe, image_index = 1, opacity = 1)
+gate_spatial(spe, image_index = 1, opacity = 1, size = 1)
 }
 \arguments{
 \item{spe}{A SpatialExperiment object}
