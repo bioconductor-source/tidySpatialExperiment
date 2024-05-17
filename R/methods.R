@@ -284,18 +284,21 @@ ellipse <- function(spatial_coord1, spatial_coord2, center, axes_lengths) {
 #' \dontrun{
 #' example(read10xVisium)
 #' spe |>
-#'     mutate(in_gates = gate_spatial(spe)
+#'     gate_spatial()
 #' }
 #' @param spe A SpatialExperiment object
 #' @param image_index The image to display if multiple are stored within the provided
 #' SpatialExperiment object. 
-#' @return A vector with TRUE for elements inside gate points and FALSE for elements outside gate 
-#' points. A record of the selected points is stored in `tidygate_env$select_data` and a 
-#' record of the gates is stored in `tidygate_env$brush_data`.
+#' @param opcaity The opacity of points, with 1 being completely opaque and 0 being completely
+#' transparent.
+#' @return The input SpatialExperiment object with a new column `.selected`, with TRUE for elements 
+#' inside gate points and FALSE for elements outside gate points. A record of the selected points is 
+#' stored in `tidygate_env$select_data` and a record of the gates is stored in 
+#' `tidygate_env$brush_data`.
 #' @export
 gate_spatial <-
   
-  function(spe, image_index = 1) {
+  function(spe, image_index = 1, opacity = 1) {
     
     print("tidySpatialExperiment says: this feature is in early development and may undergo changes or contain bugs.")
     
@@ -335,7 +338,7 @@ gate_spatial <-
     spatial_plot <-
       data |>
       ggplot2::ggplot(ggplot2::aes(x = dimension_x, y = dimension_y, key = .key)) +
-      ggplot2::geom_point() +
+      ggplot2::geom_point(alpha = opacity) +
       ggplot2::coord_cartesian(
         xlim =  c(0, image_x_size), 
         ylim = c(0, image_y_size), 
@@ -371,5 +374,7 @@ gate_spatial <-
     app <- shiny::shinyApp(tidygate::ui, tidygate::server)
     shiny::runApp(app, port = 1234)
     
-    return(tidygate_env$select_data$.selected)
+    spe$.selected <- tidygate_env$select_data$.selected 
+    
+    return(spe)
   }

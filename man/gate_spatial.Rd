@@ -4,18 +4,22 @@
 \alias{gate_spatial}
 \title{Gate spatial}
 \usage{
-gate_spatial(spe, image_index = 1)
+gate_spatial(spe, image_index = 1, opacity = 1)
 }
 \arguments{
 \item{spe}{A SpatialExperiment object}
 
 \item{image_index}{The image to display if multiple are stored within the provided
 SpatialExperiment object.}
+
+\item{opcaity}{The opacity of points, with 1 being completely opaque and 0 being completely
+transparent.}
 }
 \value{
-A vector with TRUE for elements inside gate points and FALSE for elements outside gate
-points. A record of the selected points is stored in \code{tidygate_env$select_data} and a
-record of the gates is stored in \code{tidygate_env$brush_data}.
+The input SpatialExperiment object with a new column \code{.selected}, with TRUE for elements
+inside gate points and FALSE for elements outside gate points. A record of the selected points is
+stored in \code{tidygate_env$select_data} and a record of the gates is stored in
+\code{tidygate_env$brush_data}.
 }
 \description{
 Interactively gate points by their location in space, with image data overlaid.
@@ -24,6 +28,6 @@ Interactively gate points by their location in space, with image data overlaid.
 \dontrun{
 example(read10xVisium)
 spe |>
-    mutate(in_gates = gate_spatial(spe)
+    gate_spatial()
 }
 }
