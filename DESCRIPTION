@@ -61,6 +61,8 @@ Suggests:
     tidySummarizedExperiment
 VignetteBuilder: 
     knitr
+Remotes:
+    stemangiola/tidygate
 Biarch: true
 biocViews: Infrastructure, RNASeq, GeneExpression, Sequencing, Spatial, Transcriptomics, SingleCell
 Encoding: UTF-8
