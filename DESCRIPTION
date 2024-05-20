@@ -1,7 +1,7 @@
 Type: Package
 Package: tidySpatialExperiment
 Title: SpatialExperiment with tidy principles 
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: c(
     person("William", "Hutchison", email = "hutchison.w@wehi.edu.au", role = c("aut", "cre"), 
            comment = c(ORCID = "0009-0001-6242-4269")),
@@ -30,6 +30,7 @@ Imports:
     dplyr,
     tidyr,
     ggplot2,
+    plotly,
     rlang,
     purrr,
     stringr,
@@ -38,7 +39,10 @@ Imports:
     pillar,
     cli,
     fansi,
-    lifecycle
+    lifecycle,
+    magick,
+    tidygate (>= 0.5.0),
+    shiny
 Suggests:
     BiocStyle,
     testthat,
@@ -54,10 +58,11 @@ Suggests:
     dittoSeq,
     cowplot, 
     DropletUtils,
-    plotly,
     tidySummarizedExperiment
 VignetteBuilder: 
     knitr
+Remotes:
+    stemangiola/tidygate
 Biarch: true
 biocViews: Infrastructure, RNASeq, GeneExpression, Sequencing, Spatial, Transcriptomics, SingleCell
 Encoding: UTF-8
