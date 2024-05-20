@@ -4,7 +4,7 @@
 \alias{gate_spatial}
 \title{Gate spatial}
 \usage{
-gate_spatial(spe, image_index = 1, opacity = 1, size = 1)
+gate_spatial(spe, image_index = 1, alpha = 1, size = 1)
 }
 \arguments{
 \item{spe}{A SpatialExperiment object}
@@ -12,8 +12,10 @@ gate_spatial(spe, image_index = 1, opacity = 1, size = 1)
 \item{image_index}{The image to display if multiple are stored within the provided
 SpatialExperiment object.}
 
-\item{opcaity}{The opacity of points, with 1 being completely opaque and 0 being completely
+\item{alpha}{The opacity of points, with 1 being completely opaque and 0 being completely
 transparent.}
+
+\item{size}{The size of points.}
 }
 \value{
 The input SpatialExperiment object with a new column \code{.selected}, with TRUE for elements
