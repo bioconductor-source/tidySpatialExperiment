@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# tidySpatialExperiment - part of *tidyomics* <img id="tidySpatialExperiment_logo" src="man/figures/logo.png" align="right" width = "125" />
+# tidySpatialExperiment - part of *tidyomics* <img src="man/figures/logo.png" id="tidySpatialExperiment_logo" align="right" width="125"/>
 
 <!-- badges: start -->
 
@@ -11,16 +11,31 @@ status](https://github.com/william-hutchison/tidySpatialExperiment/workflows/rwo
 
 <!-- badges: end -->
 
-Resources to help you get started with tidySpatialExperiment and
-*tidyomics*:
+# Introduction
+
+tidySpatialExperiment provides a bridge between the
+[SpatialExperiment](https://github.com/drighelli/SpatialExperiment)
+package and the [*tidyverse*](https://www.tidyverse.org) ecosystem. It
+creates an invisible layer that allows you to interact with a
+`SpatialExperiment` object as if it were a tibble; enabling the use of
+functions from [dplyr](https://github.com/tidyverse/dplyr),
+[tidyr](https://github.com/tidyverse/tidyr),
+[ggplot2](https://github.com/tidyverse/ggplot2) and
+[plotly](https://github.com/plotly/plotly.R). But, underneath, your data
+remains a `SpatialExperiment` object.
+
+tidySpatialExperiment also provides five additional utility functions.
+
+## Resources
+
+If you would like to learn more about tidySpatialExperiment and
+*tidyomics*, the following links are a good place to start:
 
 - [The tidySpatialExperiment
   website](http://william-hutchison.github.io/tidySpatialExperiment/)
-- [The tidyomics blog](https://tidyomics.github.io/tidyomicsBlog/)
-- [Third party
-  tutorials](https://rstudio-pubs-static.s3.amazonaws.com/792462_f948e766b15d4ee5be5c860493bda0b3.html)
+- [The tidyomics website](https://github.com/tidyomics)
 
-The *tidyomics* ecosystem includes packages for:
+The *tidyomics* ecosystem also includes packages for:
 
 - Working with genomic features:
 
@@ -34,11 +49,11 @@ The *tidyomics* ecosystem includes packages for:
 - Working with transcriptomic features:
 
   - [tidySummarizedExperiment](https://github.com/stemangiola/tidySummarizedExperiment),
-    for tidy manipulation of SummarizedExperiment objects.
+    for tidy manipulation of `SummarizedExperiment` objects.
   - [tidySingleCellExperiment](https://github.com/stemangiola/tidySingleCellExperiment),
-    for tidy manipulation of SingleCellExperiment objects.
+    for tidy manipulation of `SingleCellExperiment` objects.
   - [tidyseurat](https://github.com/stemangiola/tidyseurat), for tidy
-    manipulation of Seurat objects.
+    manipulation of `Seurat` objects.
   - [tidybulk](https://github.com/stemangiola/tidybulk), for bulk
     RNA-seq analysis.
 
@@ -47,21 +62,12 @@ The *tidyomics* ecosystem includes packages for:
   - [tidytof](https://github.com/keyes-timothy/tidytof), for tidy
     manipulation of high-dimensional cytometry data.
 
-# Introduction
+- And a few associated packages:
 
-tidySpatialExperiment provides a bridge between the
-[SpatialExperiment](https://github.com/drighelli/SpatialExperiment)
-\[@righelli2022spatialexperiment\] package and the
-[*tidyverse*](https://www.tidyverse.org) \[@wickham2019welcome\]
-ecosystem. It creates an invisible layer that allows you to interact
-with a SpatialExperiment object as if it were a tibble; enabling the use
-of functions from [dplyr](https://github.com/tidyverse/dplyr),
-[tidyr](https://github.com/tidyverse/tidyr),
-[ggplot2](https://github.com/tidyverse/ggplot2) and
-[plotly](https://github.com/plotly/plotly.R). But, underneath, your data
-remains a SpatialExperiment object.
-
-tidySpatialExperiment also provides five additional utility functions.
+  - [tidygate](https://github.com/stemangiola/tidygate), for manual
+    gating of points in space.
+  - [tidyheatmap](https://github.com/stemangiola/tidyHeatmap/), for
+    modular heatmap contruction.
 
 ## Functions and utilities
 
@@ -78,61 +84,58 @@ tidySpatialExperiment also provides five additional utility functions.
 | `as_tibble`       | Convert cell data to a `tbl_df`                                                  |
 | `join_features`   | Append feature data to cell data                                                 |
 | `aggregate_cells` | Aggregate cell-feature abundance into a pseudobulk `SummarizedExperiment` object |
-| `rectangle`       | Select rectangular region of space                                               |
-| `ellipse`         | Select elliptical region of space                                                |
+| `rectangle`       | Select cells in a rectangular region of space                                    |
+| `ellipse`         | Select cells in an elliptical region of space                                    |
 
 ## Installation
 
 You can install the stable version of tidySpatialExperiment from
-Bioconductor with:
+Bioconductor.
 
 ``` r
-if (!requireNamespace("BiocManager", quietly=TRUE))
+if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install("tidySpatialExperiment")
 ```
 
-You can install the development version of tidySpatialExperiment from
-GitHub with:
+Or, you can install the development version of tidySpatialExperiment
+from GitHub.
 
 ``` r
-if (!requireNamespace("devtools", quietly=TRUE))
-    install.packages("devtools")
+if (!requireNamespace("pak", quietly = TRUE))
+    install.packages("pak")
 
-devtools::install_github("william-hutchison/tidySpatialExperiment")
+pak::pak("william-hutchison/tidySpatialExperiment")
 ```
 
 ## Load data
 
-Here, we attach tidySpatialExperiment and an example SpatialExperiment
+Here, we attach tidySpatialExperiment and an example `SpatialExperiment`
 object.
 
 ``` r
 # Load example SpatialExperiment object
 library(tidySpatialExperiment)
-example(read10xVisium)
 ```
 
 ## SpatialExperiment-tibble abstraction
 
-A SpatialExperiment object represents observations (cells) as columns
-and variables (features) as rows, as is the Bioconductor convention.
-Additional information about the cells is accessed through the
-`reducedDims`, `colData` and `spatialCoords` functions.
+A `SpatialExperiment` object represents assay-feature values as rows and
+cells as columns. Additional information about the cells is stored in
+the `reducedDims`, `colData` and `spatialCoords` slots.
 
 tidySpatialExperiment provides a SpatialExperiment-tibble abstraction,
-representing cells as rows and features as columns, as is the
-*tidyverse* convention. `colData` and `spatialCoords` are appended as
-columns to the same abstraction, allowing easy interaction with this
-additional data.
+representing cells as rows and cell data as columns, in accordance with
+the tidy observation-variable convention. The cell data is made up of
+information stored in the `colData` and `spatialCoords` slots.
 
 The default view is now of the SpatialExperiment-tibble abstraction.
 
 ``` r
 spe
 #  # A SpatialExperiment-tibble abstraction: 99 × 7
-#  # [90mFeatures=50 | Cells=99 | Assays=counts[0m
+#  # Features = 50 | Cells = 99 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                  <int>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1                2312
@@ -144,13 +147,13 @@ spe
 #  # ℹ 1 more variable: pxl_row_in_fullres <int>
 ```
 
-However, our data maintains its status as a SpatialExperiment object.
-Therefore, we have access to all SpatialExperiment functions.
+But, our data maintains its status as a `SpatialExperiment` object.
+Therefore, we have access to all `SpatialExperiment` functions.
 
 ``` r
 spe |>
-  colData() |>
-  head()
+    colData() |>
+    head()
 #  DataFrame with 6 rows and 4 columns
 #                     in_tissue array_row array_col   sample_id
 #                     <logical> <integer> <integer> <character>
@@ -162,8 +165,8 @@ spe |>
 #  AAACAGCTTTCAGAAG-1     FALSE        43         9    section1
 
 spe |> 
-  spatialCoords() |>
-  head()
+    spatialCoords() |>
+    head()
 #                     pxl_col_in_fullres pxl_row_in_fullres
 #  AAACAACGAATAGTTC-1               2312               1252
 #  AAACAAGTATCTCCCA-1               8230               7237
@@ -173,7 +176,7 @@ spe |>
 #  AAACAGCTTTCAGAAG-1               1831               6400
 
 spe |>
-  imgData()
+    imgData()
 #  DataFrame with 2 rows and 4 columns
 #      sample_id    image_id   data scaleFactor
 #    <character> <character> <list>   <numeric>
@@ -186,14 +189,14 @@ spe |>
 ## Manipulate with dplyr
 
 Most functions from dplyr are available for use with the
-SpatialExperiment-tibble abstraction. For example, `filter` can be used
-to select cells by a variable of interest.
+SpatialExperiment-tibble abstraction. For example, `filter()` can be
+used to filter cells by a variable of interest.
 
 ``` r
 spe |>
-  filter(array_col < 5)
+   filter(array_col < 5)
 #  # A SpatialExperiment-tibble abstraction: 6 × 7
-#  # [90mFeatures=50 | Cells=6 | Assays=counts[0m
+#  # Features = 50 | Cells = 6 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                  <int>
 #  1 AAACATGGTGAGAGGA-1 FALSE            62         0 section1                1212
@@ -210,9 +213,9 @@ existing variable.
 
 ``` r
 spe |>
-  mutate(in_region = c(in_tissue & array_row < 10))
+    mutate(in_region = c(in_tissue & array_row < 10))
 #  # A SpatialExperiment-tibble abstraction: 99 × 8
-#  # [90mFeatures=50 | Cells=99 | Assays=counts[0m
+#  # Features = 50 | Cells = 99 | Assays = counts
 #    .cell     in_tissue array_row array_col sample_id in_region pxl_col_in_fullres
 #    <chr>     <lgl>         <int>     <int> <chr>     <lgl>                  <int>
 #  1 AAACAACG… FALSE             0        16 section1  FALSE                   2312
@@ -226,14 +229,15 @@ spe |>
 
 ## Tidy with tidyr
 
-Most functions from tidyr are also available. Here, `nest` is used to
-group the data by `sample_id`, and `unnest` is used to ungroup the data.
+Most functions from tidyr are also available. Here, `nest()` is used to
+group the data by `sample_id`, and `unnest()` is used to ungroup the
+data.
 
 ``` r
 # Nest the SpatialExperiment object by sample_id
 spe_nested <-
-  spe |> 
-  nest(data = -sample_id)
+    spe |> 
+    nest(data = -sample_id)
 
 # View the nested SpatialExperiment object
 spe_nested
@@ -245,9 +249,9 @@ spe_nested
 
 # Unnest the nested SpatialExperiment objects
 spe_nested |>
-  unnest(data)
+    unnest(data)
 #  # A SpatialExperiment-tibble abstraction: 99 × 7
-#  # [90mFeatures=50 | Cells=99 | Assays=counts[0m
+#  # Features = 50 | Cells = 99 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                  <int>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1                2312
@@ -261,45 +265,43 @@ spe_nested |>
 
 ## Plot with ggplot2
 
-The `ggplot` function can be used to create a plot from a
-SpatialExperiment object. This example also demonstrates how tidy
-operations can be combined to build up more complex analysis. It should
-be noted that helper functions such `aes` are not included and should be
-imported from ggplot2.
+The `ggplot()` function can be used to create a plot directly from a
+`SpatialExperiment` object. This example also demonstrates how tidy
+operations can be combined to build up more complex analysis.
 
 ``` r
 spe |>
-  filter(sample_id == "section1" & in_tissue) |>
-  
-  # Add a column with the sum of feature counts per cell
-  mutate(count_sum = purrr::map_int(.cell, ~
-    spe[, .x] |> 
-      counts() |> 
-      sum()
-    )) |>
-  
-  # Plot with tidySpatialExperiment and ggplot2
-  ggplot(ggplot2::aes(x = reorder(.cell, count_sum), y = count_sum)) +
-  ggplot2::geom_point() +
-  ggplot2::coord_flip()
+    filter(sample_id == "section1" & in_tissue) |>
+    
+    # Add a column with the sum of feature counts per cell
+    mutate(count_sum = purrr::map_int(.cell, ~
+        spe[, .x] |> 
+            counts() |> 
+            sum()
+      )) |>
+    
+    # Plot with tidySpatialExperiment and ggplot2
+    ggplot(aes(x = reorder(.cell, count_sum), y = count_sum)) +
+    geom_point() +
+    coord_flip()
 ```
 
 ![](man/figures/unnamed-chunk-11-1.png)<!-- -->
 
 ## Plot with plotly
 
-The `plot_ly` function can also be used to create a plot from a
-SpatialExperiment object.
+The `plot_ly()` function can also be used to create a plot from a
+`SpatialExperiment` object.
 
 ``` r
 spe |>
-  filter(sample_id == "section1") |>
-  plot_ly(
-    x = ~ array_col, 
-    y = ~ array_row, 
-    color = ~ in_tissue, 
-    type = "scatter"
-  )
+    filter(sample_id == "section1") |>
+    plot_ly(
+        x = ~ array_col, 
+        y = ~ array_row, 
+        color = ~ in_tissue, 
+        type = "scatter"
+    )
 ```
 
 ![](man/figures/plotly_demo.png)
@@ -314,38 +316,28 @@ their array location.
 
 ``` r
 spe_regions <-
-  spe |> 
-  filter(sample_id == "section1") |>
-  mutate(region = tidygate::gate_chr(array_col, array_row))
+    spe |> 
+    filter(sample_id == "section1") |>
+    mutate(region = tidygate::gate_chr(array_col, array_row))
 ```
 
 ![](man/figures/tidygate_demo.gif)
-
-The gated cells can then be divided into pseudobulks within a
-SummarizedExperiment object using tidySpatialExperiment’s
-`aggregate_cells` utility function.
-
-``` r
-spe_regions_aggregated <-
-  spe_regions |>
-  aggregate_cells(region)
-```
 
 # Utilities
 
 ## Append feature data to cell data
 
-The *tidyomics* ecosystem places the emphasis on interacting with cell
-data. To interact with feature data, the `join_feature` function can be
-used to append feature values to cell data.
+The *tidyomics* ecosystem places an emphasis on interacting with cell
+data. To interact with feature data, the `join_features()` function can
+be used to append assay-feature values to cell data.
 
 ``` r
 # Join feature data in wide format, preserving the SpatialExperiment object
 spe |>
-  join_features(features = c("ENSMUSG00000025915", "ENSMUSG00000042501"), shape = "wide") |> 
-  head()
+    join_features(features = c("ENSMUSG00000025915", "ENSMUSG00000042501"), shape = "wide") |> 
+    head()
 #  # A SpatialExperiment-tibble abstraction: 99 × 9
-#  # [90mFeatures=6 | Cells=99 | Assays=counts[0m
+#  # Features = 6 | Cells = 99 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id ENSMUSG00000025915
 #    <chr>              <lgl>         <int>     <int> <chr>                  <dbl>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1                   0
@@ -359,9 +351,10 @@ spe |>
 
 # Join feature data in long format, discarding the SpatialExperiment object
 spe |>
-  join_features(features = c("ENSMUSG00000025915", "ENSMUSG00000042501"), shape = "long") |> 
-  head()
-#  tidySpatialExperiment says: A data frame is returned for independent data analysis.
+    join_features(features = c("ENSMUSG00000025915", "ENSMUSG00000042501"), shape = "long") |> 
+    head()
+#  tidySpatialExperiment says: A data frame is returned for independent data 
+#                analysis.
 #  # A tibble: 6 × 7
 #    .cell       in_tissue array_row array_col sample_id .feature .abundance_counts
 #    <chr>       <lgl>         <int>     <int> <chr>     <chr>                <dbl>
@@ -379,11 +372,12 @@ Sometimes, it is necessary to aggregate the gene-transcript abundance
 from a group of cells into a single value. For example, when comparing
 groups of cells across different samples with fixed-effect models.
 
-Cell aggregation can be achieved using the `aggregate_cells` function.
+The `aggregate_cells()` function can be used to aggregate cells by a
+specified variable and assay, returning a `SummarizedExperiment` object.
 
 ``` r
 spe |>
-  aggregate_cells(in_tissue, assays = "counts")
+    aggregate_cells(in_tissue, assays = "counts")
 #  class: SummarizedExperiment 
 #  dim: 50 2 
 #  metadata(0):
@@ -397,31 +391,30 @@ spe |>
 
 ## Elliptical and rectangular region selection
 
-To select cells by their geometric region in space, the `ellipse` and
-`rectangle` functions can be used.
+The `ellipse()` and `rectangle()` functions can be used to select cells
+by their position in space.
 
 ``` r
 spe |>
-  filter(sample_id == "section1") |>
-  mutate(in_ellipse = ellipse(array_col, array_row, c(20, 40), c(20, 20))) |>
-  ggplot(aes(x = array_col, y = array_row, colour = in_ellipse)) +
-  geom_point()
+    filter(sample_id == "section1") |>
+    mutate(in_ellipse = ellipse(array_col, array_row, c(20, 40), c(20, 20))) |>
+    ggplot(aes(x = array_col, y = array_row, colour = in_ellipse)) +
+    geom_point()
 ```
 
-![](man/figures/unnamed-chunk-18-1.png)<!-- -->
+![](man/figures/unnamed-chunk-17-1.png)<!-- -->
 
-# Important considerations
-
-## Read-only columns
+# Special column behaviour
 
 Removing the `.cell` column will return a tibble. This is consistent
 with the behaviour in other *tidyomics* packages.
 
 ``` r
 spe |>
-  select(-.cell) |>
-  head()
-#  tidySpatialExperiment says: Key columns are missing. A data frame is returned for independent data analysis.
+    select(-.cell) |>
+    head()
+#  tidySpatialExperiment says: Key columns are missing. A data frame is 
+#                          returned for independent data analysis.
 #  # A tibble: 6 × 4
 #    in_tissue array_row array_col sample_id
 #    <lgl>         <int>     <int> <chr>    
@@ -435,14 +428,14 @@ spe |>
 
 The sample_id column cannot be removed with *tidyverse* functions, and
 can only be modified if the changes are accepted by SpatialExperiment’s
-`colData` function.
+`colData()` function.
 
 ``` r
 # sample_id is not removed, despite the user's request
 spe |>
-  select(-sample_id)
+    select(-sample_id)
 #  # A SpatialExperiment-tibble abstraction: 99 × 7
-#  # [90mFeatures=50 | Cells=99 | Assays=counts[0m
+#  # [90mFeatures = 50 | Cells = 99 | Assays = counts[0m
 #    .cell              in_tissue array_row array_col sample_id pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                  <int>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1                2312
@@ -455,10 +448,10 @@ spe |>
 
 # This change maintains separation of sample_ids and is permitted
 spe |> 
-  mutate(sample_id = stringr::str_c(sample_id, "_modified")) |>
-  head()
+    mutate(sample_id = stringr::str_c(sample_id, "_modified")) |>
+    head()
 #  # A SpatialExperiment-tibble abstraction: 99 × 7
-#  # [90mFeatures=6 | Cells=99 | Assays=counts[0m
+#  # Features = 6 | Cells = 99 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id  pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                   <int>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1_…               2312
@@ -471,7 +464,7 @@ spe |>
 
 # This change does not maintain separation of sample_ids and produces an error
 spe |>
-  mutate(sample_id = "new_sample")
+    mutate(sample_id = "new_sample")
 #  Error in .local(x, ..., value): Number of unique 'sample_id's is 2, but 1 was provided.
 ```
 
@@ -482,14 +475,14 @@ the behaviour of dimension reduction data in other *tidyomics* packages.
 ``` r
 # Attempting to remove pxl_col_in_fullres produces an error
 spe |>
-  select(-pxl_col_in_fullres)
+    select(-pxl_col_in_fullres)
 #  Error in `select_helper()`:
 #  ! Can't subset columns that don't exist.
 #  ✖ Column `pxl_col_in_fullres` doesn't exist.
 
 # Attempting to modify pxl_col_in_fullres produces an error
 spe |> 
-  mutate(pxl_col_in_fullres)
+    mutate(pxl_col_in_fullres)
 #  Error in `dplyr::mutate()`:
 #  ℹ In argument: `pxl_col_in_fullres`.
 #  Caused by error:
