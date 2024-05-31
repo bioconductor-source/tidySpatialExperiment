@@ -10,6 +10,7 @@
 #' @importFrom pillar get_extent
 #' @importFrom pillar style_subtle
 #' @importFrom pillar tbl_format_header
+#' @importFrom cli col_br_black
 #' @export
 tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
 
@@ -31,12 +32,12 @@ tbl_format_header.tidySpatialExperiment <- function(x, setup, ...) {
             ) |>
       
             # Add further info single-cell
-            append(sprintf(
-                "\033[90m Features = %s | Cells = %s | Assays = %s\033[39m",
+            append(cli::col_br_black(sprintf(
+                "Features = %s | Cells = %s | Assays = %s",
                 number_of_features,
                 nrow(x),
                 assay_names |> paste(collapse = ", ")
-            ), after = 1)
+            )), after = 1)
     }
   
     style_subtle(pillar___format_comment(header, width = setup$width))
