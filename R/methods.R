@@ -258,7 +258,7 @@ ellipse <- function(spatial_coord1, spatial_coord2, center, axes_lengths) {
     return(within_ellipse)
 }
 
-#' Gate spatial
+#' Gate interactive 
 #' 
 #' Interactively gate points by their location in space, with image data overlaid. 
 #' 
@@ -284,37 +284,61 @@ ellipse <- function(spatial_coord1, spatial_coord2, center, axes_lengths) {
 #' \dontrun{
 #' example(read10xVisium)
 #' spe |>
-#'     gate_spatial()
+#'     gate_interactive()
 #' }
 #' @param spe A SpatialExperiment object
 #' @param image_index The image to display if multiple are stored within the provided
 #' SpatialExperiment object. 
-#' @param alpha The opacity of points, with 1 being completely opaque and 0 being completely
-#' transparent.
-#' @param size The size of points.
-#' @return The input SpatialExperiment object with a new column `.selected`, with TRUE for elements 
-#' inside gate points and FALSE for elements outside gate points. A record of the selected points is 
-#' stored in `tidygate_env$select_data` and a record of the gates is stored in 
-#' `tidygate_env$brush_data`.
+#' @param colour_column A column name string representing the point colour.
+#' @param shape_column A column name string representing the point shape. Must be coercible to 
+#' a factor.
+#' @param alpha A numeric value representing the opacity of points, with 1 being completely opaque 
+#' and 0 being completely transparent.
+#' @param size A numeric value representing the size of points.
+#' @return A vector of lists, recording the gates each X and Y coordinate pair is within. A record 
+#' of the selected points is stored in `tidygate_env$select_data` and a record of the gates is 
+#' stored in `tidygate_env$brush_data`.
+#' @return The input SpatialExperiment object with a new column `.gate_interactive`, recording the 
+#' gates each X and Y coordinate pair is within. A record of the selected points is stored in 
+#' `tidygate_env$select_data` and a record of the gates is stored in `tidygate_env$brush_data`.
 #' @export
-gate_spatial <-
+gate_interactive <-
   
-  function(spe, image_index = 1, alpha = 1, size = 1) {
+  function(spe, image_index = 1, colour_column = NULL, shape_column = NULL, alpha = 1, size = 2) {
     
     message("tidySpatialExperiment says: this feature is in early development and may undergo changes or contain bugs.")
     
     # Create tibble with necessary information
     data <- 
       tibble::tibble(
-        dimension_x = 
+        x_column = 
           spe |>
           pull(pxl_col_in_fullres), 
-        dimension_y = 
+        y_column = 
           spe |>
           pull(pxl_row_in_fullres)
       ) |>
-      dplyr::mutate(.key = dplyr::row_number()) |>
-      dplyr::mutate(.selected = FALSE)
+      dplyr::mutate(.key = dplyr::row_number())
+      
+    # Optionally add colour and shape if provided
+      if (!is.null(colour_column)) {
+        data <-
+          data |>
+          dplyr::mutate(colour_column = 
+            spe |> 
+              dplyr::pull(sym(colour_column))
+            )
+      }
+    
+      if (!is.null(shape_column)) {
+          data <-
+            data |>
+            dplyr::mutate(shape_column = 
+              spe |> 
+                dplyr::pull(sym(shape_column)) |>
+                factor()
+              )
+        }
     
     # Prepare spatial information
     image <- 
@@ -338,7 +362,10 @@ gate_spatial <-
     # Create plot 
     spatial_plot <-
       data |>
-      ggplot2::ggplot(ggplot2::aes(x = dimension_x, y = dimension_y, key = .key)) +
+      ggplot2::ggplot(ggplot2::aes(
+        x = x_column, y = y_column,  
+        colour = colour_column, shape = shape_column, key = .key
+      )) +
       ggplot2::geom_point(alpha = alpha, size = size) +
       ggplot2::coord_fixed(
         xlim =  c(0, image_x_size), 
@@ -368,15 +395,52 @@ gate_spatial <-
     # Create environment and save input variables
     tidygate_env <<- rlang::env()
     tidygate_env$input_data <- data
-    tidygate_env$dimension_x <- data$dimension_x
-    tidygate_env$dimension_y <- data$dimension_y
-    tidygate_env$custom_plot <- spatial_plot
+    tidygate_env$input_plot <- spatial_plot
+    tidygate_env$event_count <- 1
     
     # Launch Shiny App
     app <- shiny::shinyApp(tidygate::ui, tidygate::server)
-    shiny::runApp(app, port = 1234)
+    gate_vector <- shiny::runApp(app, port = 1234)
     
-    spe$.gate <- tidygate_env$select_data$.selected 
+    # Return interactive gate information
+    spe$.gate_interactive <- gate_vector
+    return(spe)
+  }
+
+#' Gate spatial data with pre-recorded lasso selection coordinates
+#'
+#' A helpful way to repeat previous interactive lasso selections to enable reproducibility. 
+#' Programmatic gating is based on the package [gatepoints](https://github.com/wjawaid/gatepoints)
+#' by Wajid Jawaid. 
+#' 
+#' @importFrom tidygate gate_programmatic
+#' @importFrom tibble tibble
+#' @importFrom dplyr mutate
+#'
+#' @param spe A SpatialExperiment object
+#' @return The input SpatialExperiment object with a new column `.gate_programmatic`, recording the 
+#' gates each X and Y coordinate pair is within.
+#' @export
+gate_programmatic <-
+  function(spe, gates) {
     
+    # Format spatial data for tidygate
+    data <- 
+      tibble::tibble(
+        dimension_x = 
+          spe |>
+          pull(pxl_col_in_fullres), 
+        dimension_y = 
+          spe |>
+          pull(pxl_row_in_fullres)
+      ) |>
+      
+      # Pass data to tidygate
+      dplyr::mutate(.gate_programmatic = tidygate::gate_programmatic(
+        x_column = dimension_x, y_column = dimension_y, gates = gates
+      ))
+    
+    # Return programmatic gate information
+    spe$.gate_programmatic <- data$.gate_programmatic
     return(spe)
   }
