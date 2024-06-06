@@ -79,13 +79,15 @@ The *tidyomics* ecosystem also includes packages for:
 | `ggplot2`           | `ggplot`                                                                                                                                                                                                           |
 | `plotly`            | `plot_ly`                                                                                                                                                                                                          |
 
-| Utility           | Description                                                                      |
-|-------------------|----------------------------------------------------------------------------------|
-| `as_tibble`       | Convert cell data to a `tbl_df`                                                  |
-| `join_features`   | Append feature data to cell data                                                 |
-| `aggregate_cells` | Aggregate cell-feature abundance into a pseudobulk `SummarizedExperiment` object |
-| `rectangle`       | Select cells in a rectangular region of space                                    |
-| `ellipse`         | Select cells in an elliptical region of space                                    |
+| Utility             | Description                                                                      |
+|---------------------|----------------------------------------------------------------------------------|
+| `as_tibble`         | Convert cell data to a `tbl_df`                                                  |
+| `join_features`     | Append feature data to cell data                                                 |
+| `aggregate_cells`   | Aggregate cell-feature abundance into a pseudobulk `SummarizedExperiment` object |
+| `rectangle`         | Select cells in a rectangular region of space                                    |
+| `ellipse`           | Select cells in an elliptical region of space                                    |
+| `gate_spatial`      |                                                                                  |
+| `gate_programmatic` |                                                                                  |
 
 ## Installation
 
@@ -117,6 +119,7 @@ object.
 ``` r
 # Load example SpatialExperiment object
 library(tidySpatialExperiment)
+example(read10xVisium)
 ```
 
 ## SpatialExperiment-tibble abstraction
@@ -134,8 +137,8 @@ The default view is now of the SpatialExperiment-tibble abstraction.
 
 ``` r
 spe
-#  # A SpatialExperiment-tibble abstraction: 99 × 7
-#  # Features = 50 | Cells = 99 | Assays = counts
+#  # A SpatialExperiment-tibble abstraction: 50 × 7
+#  # Features = 50 | Cells = 50 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                  <int>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1                2312
@@ -143,7 +146,7 @@ spe
 #  3 AAACAATCTACTAGCA-1 TRUE              3        43 section1                4170
 #  4 AAACACCAATAACTGC-1 TRUE             59        19 section1                2519
 #  5 AAACAGAGCGACTCCT-1 TRUE             14        94 section1                7679
-#  # ℹ 94 more rows
+#  # ℹ 45 more rows
 #  # ℹ 1 more variable: pxl_row_in_fullres <int>
 ```
 
@@ -163,6 +166,9 @@ spe |>
 #  AAACACCAATAACTGC-1      TRUE        59        19    section1
 #  AAACAGAGCGACTCCT-1      TRUE        14        94    section1
 #  AAACAGCTTTCAGAAG-1     FALSE        43         9    section1
+```
+
+``` r
 
 spe |> 
     spatialCoords() |>
@@ -174,14 +180,16 @@ spe |>
 #  AAACACCAATAACTGC-1               2519               8315
 #  AAACAGAGCGACTCCT-1               7679               2927
 #  AAACAGCTTTCAGAAG-1               1831               6400
+```
+
+``` r
 
 spe |>
     imgData()
-#  DataFrame with 2 rows and 4 columns
+#  DataFrame with 1 row and 4 columns
 #      sample_id    image_id   data scaleFactor
 #    <character> <character> <list>   <numeric>
 #  1    section1      lowres   ####   0.0510334
-#  2    section2      lowres   ####   0.0510334
 ```
 
 # Integration with the *tidyverse* ecosystem
@@ -195,16 +203,13 @@ used to filter cells by a variable of interest.
 ``` r
 spe |>
    filter(array_col < 5)
-#  # A SpatialExperiment-tibble abstraction: 6 × 7
-#  # Features = 50 | Cells = 6 | Assays = counts
+#  # A SpatialExperiment-tibble abstraction: 3 × 7
+#  # Features = 50 | Cells = 3 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                  <int>
 #  1 AAACATGGTGAGAGGA-1 FALSE            62         0 section1                1212
 #  2 AAACGAAGATGGAGTA-1 FALSE            58         4 section1                1487
 #  3 AAAGAATGACCTTAGA-1 FALSE            64         2 section1                1349
-#  4 AAACATGGTGAGAGGA-1 FALSE            62         0 section2                1212
-#  5 AAACGAAGATGGAGTA-1 FALSE            58         4 section2                1487
-#  # ℹ 1 more row
 #  # ℹ 1 more variable: pxl_row_in_fullres <int>
 ```
 
@@ -214,8 +219,8 @@ existing variable.
 ``` r
 spe |>
     mutate(in_region = c(in_tissue & array_row < 10))
-#  # A SpatialExperiment-tibble abstraction: 99 × 8
-#  # Features = 50 | Cells = 99 | Assays = counts
+#  # A SpatialExperiment-tibble abstraction: 50 × 8
+#  # Features = 50 | Cells = 50 | Assays = counts
 #    .cell     in_tissue array_row array_col sample_id in_region pxl_col_in_fullres
 #    <chr>     <lgl>         <int>     <int> <chr>     <lgl>                  <int>
 #  1 AAACAACG… FALSE             0        16 section1  FALSE                   2312
@@ -223,7 +228,7 @@ spe |>
 #  3 AAACAATC… TRUE              3        43 section1  TRUE                    4170
 #  4 AAACACCA… TRUE             59        19 section1  FALSE                   2519
 #  5 AAACAGAG… TRUE             14        94 section1  FALSE                   7679
-#  # ℹ 94 more rows
+#  # ℹ 45 more rows
 #  # ℹ 1 more variable: pxl_row_in_fullres <int>
 ```
 
@@ -241,17 +246,19 @@ spe_nested <-
 
 # View the nested SpatialExperiment object
 spe_nested
-#  # A tibble: 2 × 2
+#  # A tibble: 1 × 2
 #    sample_id data           
 #    <chr>     <list>         
 #  1 section1  <SptlExpr[,50]>
-#  2 section2  <SptlExpr[,49]>
+```
+
+``` r
 
 # Unnest the nested SpatialExperiment objects
 spe_nested |>
     unnest(data)
-#  # A SpatialExperiment-tibble abstraction: 99 × 7
-#  # Features = 50 | Cells = 99 | Assays = counts
+#  # A SpatialExperiment-tibble abstraction: 50 × 7
+#  # Features = 50 | Cells = 50 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                  <int>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1                2312
@@ -259,7 +266,7 @@ spe_nested |>
 #  3 AAACAATCTACTAGCA-1 TRUE              3        43 section1                4170
 #  4 AAACACCAATAACTGC-1 TRUE             59        19 section1                2519
 #  5 AAACAGAGCGACTCCT-1 TRUE             14        94 section1                7679
-#  # ℹ 94 more rows
+#  # ℹ 45 more rows
 #  # ℹ 1 more variable: pxl_row_in_fullres <int>
 ```
 
@@ -336,8 +343,8 @@ be used to append assay-feature values to cell data.
 spe |>
     join_features(features = c("ENSMUSG00000025915", "ENSMUSG00000042501"), shape = "wide") |> 
     head()
-#  # A SpatialExperiment-tibble abstraction: 99 × 9
-#  # Features = 6 | Cells = 99 | Assays = counts
+#  # A SpatialExperiment-tibble abstraction: 50 × 9
+#  # Features = 6 | Cells = 50 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id ENSMUSG00000025915
 #    <chr>              <lgl>         <int>     <int> <chr>                  <dbl>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1                   0
@@ -345,9 +352,12 @@ spe |>
 #  3 AAACAATCTACTAGCA-1 TRUE              3        43 section1                   0
 #  4 AAACACCAATAACTGC-1 TRUE             59        19 section1                   0
 #  5 AAACAGAGCGACTCCT-1 TRUE             14        94 section1                   0
-#  # ℹ 94 more rows
+#  # ℹ 45 more rows
 #  # ℹ 3 more variables: ENSMUSG00000042501 <dbl>, pxl_col_in_fullres <int>,
 #  #   pxl_row_in_fullres <int>
+```
+
+``` r
 
 # Join feature data in long format, discarding the SpatialExperiment object
 spe |>
@@ -386,7 +396,7 @@ spe |>
 #    ENSMUSG00000104217 ENSMUSG00000104328
 #  rowData names(1): feature
 #  colnames(2): FALSE TRUE
-#  colData names(2): in_tissue .aggregated_cells
+#  colData names(3): in_tissue .aggregated_cells sample_id
 ```
 
 ## Elliptical and rectangular region selection
@@ -403,6 +413,135 @@ spe |>
 ```
 
 ![](man/figures/unnamed-chunk-17-1.png)<!-- -->
+
+## Interactive gating
+
+For interactive selection of cells in space, tidySpatialExperiment
+experiment provides `gate_interactive()`. This function uses
+[tidygate](https://github.com/stemangiola/tidygate), shiny and plotly to
+launch an interactive plot overlaying cells in position with image data.
+Additional parameters can be used to specify point colour and shape by
+column value, and define the size and alpha of all points. Note that
+this feature is currently only available in the development version of
+tidySpatialExperiment.
+
+``` r
+spe_gated <- 
+  spe |>
+  gate_interactive(colour_column = "in_tissue", alpha = 0.8)
+```
+
+![](man/figures/gate_interactive_demo.gif)
+
+    #  tidygate says: this feature is in early development and may undergo changes or contain bugs.
+
+A record of which points appear in which gates is appended to the
+SpatialExperiment object in the `.gate_interactive` column. To select
+cells which appear within any gates, the `lengths()` function can be
+used. To select cells which appear within a specific gate, `map_lgl()`
+can be used with `any()` to cehck each value in `.gate_interactive` for
+each cell.
+
+``` r
+# Select cells within any gate
+spe_gated |> 
+  filter(lengths(.gate_interactive) > 0)
+#  # A SpatialExperiment-tibble abstraction: 0 × 8
+#  # Features = 50 | Cells = 0 | Assays = counts
+#  # ℹ 8 variables: .cell <chr>, in_tissue <lgl>, array_row <int>,
+#  #   array_col <int>, sample_id <chr>, .gate_interactive <list>,
+#  #   pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
+```
+
+``` r
+
+# Select cells within gate 2
+spe_gated |>
+  filter(purrr::map_lgl(.gate_interactive, ~ any(2 %in% .x)))
+#  # A SpatialExperiment-tibble abstraction: 0 × 8
+#  # Features = 50 | Cells = 0 | Assays = counts
+#  # ℹ 8 variables: .cell <chr>, in_tissue <lgl>, array_row <int>,
+#  #   array_col <int>, sample_id <chr>, .gate_interactive <list>,
+#  #   pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
+```
+
+Details of the gated points and lasso brush selection are stored within
+the `tidygate_env` environment. These variables are overwritten each
+time interactive gating is run, so save them right away if you would
+like to access them later.
+
+``` r
+# Information about the gated points 
+tidygate_env$select_data
+#    X    x    y key .gate
+#  1 1 5477 4125  43     1
+#  2 2 3000 4125  44     1
+#  3 3 6647 5442  21     2
+#  4 4 5821 6639  31     2
+#  5 5 5477 4125  43     2
+```
+
+``` r
+
+# Information about the lasso brush path
+tidygate_env$brush_data
+#      X        x        y .gate
+#  1   1 5576.396 3432.722     1
+#  2   2 4902.921 3042.815     1
+#  3   3 4123.107 2936.477     1
+#  4   4 3024.279 3290.937     1
+#  5   5 2811.603 3609.952     1
+#  6   6 2882.495 4141.643     1
+#  7   7 3307.848 4566.996     1
+#  8   8 4335.783 4566.996     1
+#  9   9 4548.460 4708.780     1
+#  10 10 5540.950 5134.133     1
+#  11 11 6143.533 5134.133     1
+#  12 12 6320.763 4886.010     1
+#  13 13 6320.763 4602.442     1
+#  14 14 6143.533 4177.089     1
+#  15 15 5930.856 3716.290     2
+#  16 16 5470.058 3503.614     2
+#  17 17 5080.151 3680.844     2
+#  18 18 5080.151 4035.305     2
+#  19 19 5611.842 4779.672     2
+#  20 20 6249.871 5346.809     2
+#  21 21 6178.979 5630.378     2
+#  22 22 5682.734 6091.176     2
+#  23 23 5505.504 6374.745     2
+#  24 24 5611.842 6870.990     2
+#  25 25 5895.410 7119.112     2
+#  26 26 6320.763 7083.666     2
+#  27 27 6746.116 6587.421     2
+#  28 28 7029.684 5772.162     2
+#  29 29 7029.684 5417.701     2
+#  30 30 6817.008 4744.226     2
+#  31 31 6817.008 4708.780     2
+```
+
+`gate_programmatic` gates points programmatically by their spatial
+coordinates, and a predefined lasso brush path. This function can be
+used to make interactive gates reproducible. Here `gate_programmatic`
+reproduces the previous defined interactive gates exactly and appends
+results to the `.gate_programmatic` column.
+
+``` r
+spe_gated |>
+  gate_programmatic(tidygate_env$brush_data)
+#  tidygate says: this feature is in early development and may undergo changes or contain bugs.
+#  # A SpatialExperiment-tibble abstraction: 50 × 9
+#  # Features = 50 | Cells = 50 | Assays = counts
+#    .cell              in_tissue array_row array_col sample_id .gate_interactive
+#    <chr>              <lgl>         <int>     <int> <chr>     <list>           
+#  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1  <NULL>           
+#  2 AAACAAGTATCTCCCA-1 TRUE             50       102 section1  <NULL>           
+#  3 AAACAATCTACTAGCA-1 TRUE              3        43 section1  <NULL>           
+#  4 AAACACCAATAACTGC-1 TRUE             59        19 section1  <NULL>           
+#  5 AAACAGAGCGACTCCT-1 TRUE             14        94 section1  <NULL>           
+#  # ℹ 45 more rows
+#  # ℹ 3 more variables: .gate_programmatic <list>, pxl_col_in_fullres <int>,
+#  #   pxl_row_in_fullres <int>
+```
 
 # Special column behaviour
 
@@ -426,7 +565,7 @@ spe |>
 #  # ℹ 1 more row
 ```
 
-The sample_id column cannot be removed with *tidyverse* functions, and
+The `sample_id` column cannot be removed with *tidyverse* functions, and
 can only be modified if the changes are accepted by SpatialExperiment’s
 `colData()` function.
 
@@ -434,8 +573,8 @@ can only be modified if the changes are accepted by SpatialExperiment’s
 # sample_id is not removed, despite the user's request
 spe |>
     select(-sample_id)
-#  # A SpatialExperiment-tibble abstraction: 99 × 7
-#  # [90mFeatures = 50 | Cells = 99 | Assays = counts[0m
+#  # A SpatialExperiment-tibble abstraction: 50 × 7
+#  # Features = 50 | Cells = 50 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                  <int>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1                2312
@@ -443,15 +582,18 @@ spe |>
 #  3 AAACAATCTACTAGCA-1 TRUE              3        43 section1                4170
 #  4 AAACACCAATAACTGC-1 TRUE             59        19 section1                2519
 #  5 AAACAGAGCGACTCCT-1 TRUE             14        94 section1                7679
-#  # ℹ 94 more rows
+#  # ℹ 45 more rows
 #  # ℹ 1 more variable: pxl_row_in_fullres <int>
+```
+
+``` r
 
 # This change maintains separation of sample_ids and is permitted
 spe |> 
     mutate(sample_id = stringr::str_c(sample_id, "_modified")) |>
     head()
-#  # A SpatialExperiment-tibble abstraction: 99 × 7
-#  # Features = 6 | Cells = 99 | Assays = counts
+#  # A SpatialExperiment-tibble abstraction: 50 × 7
+#  # Features = 6 | Cells = 50 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id  pxl_col_in_fullres
 #    <chr>              <lgl>         <int>     <int> <chr>                   <int>
 #  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1_…               2312
@@ -459,13 +601,26 @@ spe |>
 #  3 AAACAATCTACTAGCA-1 TRUE              3        43 section1_…               4170
 #  4 AAACACCAATAACTGC-1 TRUE             59        19 section1_…               2519
 #  5 AAACAGAGCGACTCCT-1 TRUE             14        94 section1_…               7679
-#  # ℹ 94 more rows
+#  # ℹ 45 more rows
 #  # ℹ 1 more variable: pxl_row_in_fullres <int>
+```
+
+``` r
 
 # This change does not maintain separation of sample_ids and produces an error
 spe |>
     mutate(sample_id = "new_sample")
-#  Error in .local(x, ..., value): Number of unique 'sample_id's is 2, but 1 was provided.
+#  # A SpatialExperiment-tibble abstraction: 50 × 7
+#  # Features = 50 | Cells = 50 | Assays = counts
+#    .cell              in_tissue array_row array_col sample_id  pxl_col_in_fullres
+#    <chr>              <lgl>         <int>     <int> <chr>                   <int>
+#  1 AAACAACGAATAGTTC-1 FALSE             0        16 new_sample               2312
+#  2 AAACAAGTATCTCCCA-1 TRUE             50       102 new_sample               8230
+#  3 AAACAATCTACTAGCA-1 TRUE              3        43 new_sample               4170
+#  4 AAACACCAATAACTGC-1 TRUE             59        19 new_sample               2519
+#  5 AAACAGAGCGACTCCT-1 TRUE             14        94 new_sample               7679
+#  # ℹ 45 more rows
+#  # ℹ 1 more variable: pxl_row_in_fullres <int>
 ```
 
 The `pxl_col_in_fullres` and `px_row_in_fullres` columns cannot be
@@ -477,8 +632,11 @@ the behaviour of dimension reduction data in other *tidyomics* packages.
 spe |>
     select(-pxl_col_in_fullres)
 #  Error in `select_helper()`:
-#  ! Can't subset columns that don't exist.
+#  ! Can't select columns that don't exist.
 #  ✖ Column `pxl_col_in_fullres` doesn't exist.
+```
+
+``` r
 
 # Attempting to modify pxl_col_in_fullres produces an error
 spe |> 

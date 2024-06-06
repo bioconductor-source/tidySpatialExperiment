@@ -2,21 +2,23 @@
 % Please edit documentation in R/methods.R
 \name{gate_programmatic}
 \alias{gate_programmatic}
-\title{Gate programmatic}
+\title{Gate spatial data with pre-recorded lasso selection coordinates}
 \usage{
 gate_programmatic(spe, gates)
 }
 \arguments{
-\item{gates}{A `data.frame` recording the gate brush data, as output by 
-`tidygate_env$brush_data`. The column `x` records X coordinates, the column `y` records Y 
-coordinates and the column `.gate` records the gate.}
+\item{spe}{A SpatialExperiment object}
+
+\item{gates}{A \code{data.frame} recording the gate brush data, as output by
+\code{tidygate_env$brush_data}. The column \code{x} records X coordinates, the column \code{y} records Y
+coordinates and the column \code{.gate} records the gate.}
 }
 \value{
 The input SpatialExperiment object with a new column \code{.gate_programmatic}, recording the
 gates each X and Y coordinate pair is within.
 }
 \description{
-A helpful way to repeat previous interactive lasso selections to enable reproducibility. 
-Programmatic gating is based on the package [gatepoints](https://github.com/wjawaid/gatepoints)
+A helpful way to repeat previous interactive lasso selections to enable reproducibility.
+Programmatic gating is based on the package \href{https://github.com/wjawaid/gatepoints}{gatepoints}
 by Wajid Jawaid.
 }

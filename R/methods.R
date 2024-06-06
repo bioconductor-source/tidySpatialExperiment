@@ -376,7 +376,7 @@ gate_interactive <-
 
     spatial_plot <- 
       spatial_plot |>
-      plotly::ggplotly() |>
+      plotly::ggplotly(tooltip = NULL) |>
       plotly::layout(images = list(
         list(
           source = image_uri,
@@ -418,6 +418,9 @@ gate_interactive <-
 #' @importFrom dplyr mutate
 #'
 #' @param spe A SpatialExperiment object
+#' @param gates A `data.frame` recording the gate brush data, as output by 
+#' `tidygate_env$brush_data`. The column `x` records X coordinates, the column `y` records Y 
+#' coordinates and the column `.gate` records the gate.
 #' @return The input SpatialExperiment object with a new column `.gate_programmatic`, recording the 
 #' gates each X and Y coordinate pair is within.
 #' @export

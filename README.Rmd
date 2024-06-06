@@ -95,11 +95,14 @@ The *tidyomics* ecosystem also includes packages for:
 
 | Utility           | Description                                                                      |
 |-----------------------------------|-------------------------------------|
-| `as_tibble`       | Convert cell data to a `tbl_df`                                                  |
-| `join_features`   | Append feature data to cell data                                                 |
-| `aggregate_cells` | Aggregate cell-feature abundance into a pseudobulk `SummarizedExperiment` object |
-| `rectangle`       | Select cells in a rectangular region of space                                               |
-| `ellipse`         | Select cells in an elliptical region of space                                                |
+| `as_tibble`         | Convert cell data to a `tbl_df`                                                  |
+| `join_features`     | Append feature data to cell data                                                 |
+| `aggregate_cells`   | Aggregate cell-feature abundance into a pseudobulk `SummarizedExperiment` object |
+| `rectangle`         | Select cells in a rectangular region of space                                               |
+| `ellipse`           | Select cells in an elliptical region of space                                                |
+| `gate_spatial`      |  |
+| `gate_programmatic` |  |
+
 
 ## Installation
 
@@ -137,6 +140,11 @@ example(read10xVisium)
 ```{r, echo=FALSE}
 # Load chromote for knitting
 library(chromote)
+
+# Remove unneeded second sample from demo data
+spe <-
+    spe |>
+    filter(sample_id == "section1")
 ```
 
 ## SpatialExperiment-tibble abstraction
@@ -331,6 +339,64 @@ spe |>
     geom_point()
 ```
 
+## Interactive gating
+
+For interactive selection of cells in space, tidySpatialExperiment experiment provides `gate_interactive()`. This function uses [tidygate](https://github.com/stemangiola/tidygate), shiny and plotly to launch an interactive plot overlaying cells in position with image data. Additional parameters can be used to specify point colour and shape by column value, and define the size and alpha of all points. Note that this feature is currently only available in the development version of tidySpatialExperiment. 
+
+```{r, eval=FALSE}
+spe_gated <- 
+  spe |>
+  gate_interactive(colour_column = "in_tissue", alpha = 0.8)
+```
+![](man/figures/gate_interactive_demo.gif)
+
+```{r, echo=FALSE}
+# tidygate_env$select_data |> write.csv("data/interactive_gating_demo_select_data.csv")
+# tidygate_env$brush_data |> write.csv("data/interactive_gating_demo_brush_data.csv")
+
+# Load pre-recorded brush path from data for example
+tidygate_env <<- rlang::env()
+tidygate_env$select_data <- read.csv("data/interactive_gating_demo_select_data.csv")
+tidygate_env$brush_data <- read.csv("data/interactive_gating_demo_brush_data.csv")
+
+spe_gated <-
+  spe |>
+  gate_programmatic(tidygate_env$brush_data) |>
+  dplyr::rename(.gate_interactive = .gate_programmatic)
+```
+
+A record of which points appear in which gates is appended to the SpatialExperiment object in the `.gate_interactive` column. To select cells which appear within any gates, the `lengths()` function can be used. To select cells which appear within a specific gate, `map_lgl()` can be used with `any()` to cehck each value in `.gate_interactive` for each cell. 
+
+```{r}
+# Select cells within any gate
+spe_gated |> 
+  filter(lengths(.gate_interactive) > 0)
+
+# Select cells within gate 2
+spe_gated |>
+  filter(purrr::map_lgl(.gate_interactive, ~ any(2 %in% .x)))
+```
+
+Details of the gated points and lasso brush selection are stored within the `tidygate_env` 
+environment. These variables are overwritten each time interactive gating is run, so save them
+right away if you would like to access them later. 
+
+```{r}
+# Information about the gated points 
+tidygate_env$select_data
+
+# Information about the lasso brush path
+tidygate_env$brush_data
+```
+
+`gate_programmatic` gates points programmatically by their spatial coordinates, and a predefined lasso brush 
+path. This function can be used to make interactive gates reproducible. Here `gate_programmatic` reproduces the previous defined interactive gates exactly and appends results to the `.gate_programmatic` column. 
+
+```{r}
+spe_gated |>
+  gate_programmatic(tidygate_env$brush_data)
+```
+
 # Special column behaviour
 
 Removing the `.cell` column will return a tibble. This is consistent
@@ -342,7 +408,7 @@ spe |>
     head()
 ```
 
-The sample_id column cannot be removed with *tidyverse* functions, and
+The `sample_id` column cannot be removed with *tidyverse* functions, and
 can only be modified if the changes are accepted by SpatialExperiment's
 `colData()` function.
 
