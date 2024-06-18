@@ -313,23 +313,6 @@ spe |>
 
 ![](man/figures/plotly_demo.png)
 
-# Integration with the *tidyomics* ecosystem
-
-## Interactively select cells with tidygate
-
-Different packages from the *tidyomics* ecosystem are easy to use
-together. Here, tidygate is used to interactively gate cells based on
-their array location.
-
-``` r
-spe_regions <-
-    spe |> 
-    filter(sample_id == "section1") |>
-    mutate(region = tidygate::gate_chr(array_col, array_row))
-```
-
-![](man/figures/tidygate_demo.gif)
-
 # Utilities
 
 ## Append feature data to cell data
@@ -412,7 +395,7 @@ spe |>
     geom_point()
 ```
 
-![](man/figures/unnamed-chunk-17-1.png)<!-- -->
+![](man/figures/unnamed-chunk-15-1.png)<!-- -->
 
 ## Interactive gating
 
@@ -433,6 +416,20 @@ spe_gated <-
 
 ![](man/figures/gate_interactive_demo.gif)
 
+    #  Rows: 5 Columns: 4
+    #  ── Column specification ────────────────────────────────────────────────────────
+    #  Delimiter: ","
+    #  dbl (4): x, y, key, .gate
+    #  
+    #  ℹ Use `spec()` to retrieve the full column specification for this data.
+    #  ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    #  Rows: 30 Columns: 3
+    #  ── Column specification ────────────────────────────────────────────────────────
+    #  Delimiter: ","
+    #  dbl (3): x, y, .gate
+    #  
+    #  ℹ Use `spec()` to retrieve the full column specification for this data.
+    #  ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
     #  tidygate says: this feature is in early development and may undergo changes or contain bugs.
 
 A record of which points appear in which gates is appended to the
@@ -446,11 +443,15 @@ each cell.
 # Select cells within any gate
 spe_gated |> 
   filter(lengths(.gate_interactive) > 0)
-#  # A SpatialExperiment-tibble abstraction: 0 × 8
-#  # Features = 50 | Cells = 0 | Assays = counts
-#  # ℹ 8 variables: .cell <chr>, in_tissue <lgl>, array_row <int>,
-#  #   array_col <int>, sample_id <chr>, .gate_interactive <list>,
-#  #   pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
+#  # A SpatialExperiment-tibble abstraction: 4 × 8
+#  # Features = 50 | Cells = 4 | Assays = counts
+#    .cell              in_tissue array_row array_col sample_id .gate_interactive
+#    <chr>              <lgl>         <int>     <int> <chr>     <list>           
+#  1 AAACGAGACGGTTGAT-1 TRUE             35        79 section1  <dbl [1]>        
+#  2 AAACTGCTGGCTCCAA-1 TRUE             45        67 section1  <dbl [1]>        
+#  3 AAAGGGATGTAGCAAG-1 TRUE             24        62 section1  <dbl [2]>        
+#  4 AAAGGGCAGCTTGAAT-1 TRUE             24        26 section1  <dbl [1]>        
+#  # ℹ 2 more variables: pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
 ```
 
 ``` r
@@ -458,11 +459,14 @@ spe_gated |>
 # Select cells within gate 2
 spe_gated |>
   filter(purrr::map_lgl(.gate_interactive, ~ any(2 %in% .x)))
-#  # A SpatialExperiment-tibble abstraction: 0 × 8
-#  # Features = 50 | Cells = 0 | Assays = counts
-#  # ℹ 8 variables: .cell <chr>, in_tissue <lgl>, array_row <int>,
-#  #   array_col <int>, sample_id <chr>, .gate_interactive <list>,
-#  #   pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
+#  # A SpatialExperiment-tibble abstraction: 3 × 8
+#  # Features = 50 | Cells = 3 | Assays = counts
+#    .cell              in_tissue array_row array_col sample_id .gate_interactive
+#    <chr>              <lgl>         <int>     <int> <chr>     <list>           
+#  1 AAACGAGACGGTTGAT-1 TRUE             35        79 section1  <dbl [1]>        
+#  2 AAACTGCTGGCTCCAA-1 TRUE             45        67 section1  <dbl [1]>        
+#  3 AAAGGGATGTAGCAAG-1 TRUE             24        62 section1  <dbl [2]>        
+#  # ℹ 2 more variables: pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
 ```
 
 Details of the gated points and lasso brush selection are stored within
@@ -473,50 +477,29 @@ like to access them later.
 ``` r
 # Information about the gated points 
 tidygate_env$select_data
-#    X    x    y key .gate
-#  1 1 5477 4125  43     1
-#  2 2 3000 4125  44     1
-#  3 3 6647 5442  21     2
-#  4 4 5821 6639  31     2
-#  5 5 5477 4125  43     2
+#  # A tibble: 5 × 4
+#        x     y   key .gate
+#    <dbl> <dbl> <dbl> <dbl>
+#  1  5477  4125    43     1
+#  2  3000  4125    44     1
+#  3  6647  5442    21     2
+#  4  5821  6639    31     2
+#  5  5477  4125    43     2
 ```
 
 ``` r
 
 # Information about the lasso brush path
 tidygate_env$brush_data
-#      X        x        y .gate
-#  1   1 5576.396 3432.722     1
-#  2   2 4902.921 3042.815     1
-#  3   3 4123.107 2936.477     1
-#  4   4 3024.279 3290.937     1
-#  5   5 2811.603 3609.952     1
-#  6   6 2882.495 4141.643     1
-#  7   7 3307.848 4566.996     1
-#  8   8 4335.783 4566.996     1
-#  9   9 4548.460 4708.780     1
-#  10 10 5540.950 5134.133     1
-#  11 11 6143.533 5134.133     1
-#  12 12 6320.763 4886.010     1
-#  13 13 6320.763 4602.442     1
-#  14 14 6143.533 4177.089     1
-#  15 15 5930.856 3716.290     2
-#  16 16 5470.058 3503.614     2
-#  17 17 5080.151 3680.844     2
-#  18 18 5080.151 4035.305     2
-#  19 19 5611.842 4779.672     2
-#  20 20 6249.871 5346.809     2
-#  21 21 6178.979 5630.378     2
-#  22 22 5682.734 6091.176     2
-#  23 23 5505.504 6374.745     2
-#  24 24 5611.842 6870.990     2
-#  25 25 5895.410 7119.112     2
-#  26 26 6320.763 7083.666     2
-#  27 27 6746.116 6587.421     2
-#  28 28 7029.684 5772.162     2
-#  29 29 7029.684 5417.701     2
-#  30 30 6817.008 4744.226     2
-#  31 31 6817.008 4708.780     2
+#  # A tibble: 30 × 3
+#        x     y .gate
+#    <dbl> <dbl> <dbl>
+#  1 4310. 3125.     1
+#  2 3734. 3161.     1
+#  3 2942. 3521.     1
+#  4 2834. 3665.     1
+#  5 2834. 4385.     1
+#  # ℹ 25 more rows
 ```
 
 `gate_programmatic` gates points programmatically by their spatial

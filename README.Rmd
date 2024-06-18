@@ -261,37 +261,6 @@ spe |>
 
 ![](man/figures/plotly_demo.png)
 
-# Integration with the *tidyomics* ecosystem
-
-## Interactively select cells with tidygate
-
-Different packages from the *tidyomics* ecosystem are easy to use
-together. Here, tidygate is used to interactively gate cells based on
-their array location.
-
-```{r, eval=FALSE}
-spe_regions <-
-    spe |> 
-    filter(sample_id == "section1") |>
-    mutate(region = tidygate::gate_chr(array_col, array_row))
-```
-
-![](man/figures/tidygate_demo.gif)
-
-```{r, echo=FALSE}
-# Manually set gate information to match demonstration
-spe_regions <-
-    spe |> 
-    filter(sample_id == "section1") |>
-    mutate(region = ifelse(
-        array_row < 48 &
-        array_row > 20 &
-        array_col < 80 &
-        array_col > 60, 
-        1, 0)
-    )
-```
-
 # Utilities
 
 ## Append feature data to cell data
@@ -351,13 +320,13 @@ spe_gated <-
 ![](man/figures/gate_interactive_demo.gif)
 
 ```{r, echo=FALSE}
-# tidygate_env$select_data |> write.csv("data/interactive_gating_demo_select_data.csv")
-# tidygate_env$brush_data |> write.csv("data/interactive_gating_demo_brush_data.csv")
-
+# tidygate_env$select_data |> readr::write_csv("data/interactive_gating_demo_select_data.csv")
+# tidygate_env$brush_data |> readr::write_csv("data/interactive_gating_demo_brush_data.csv")
+ 
 # Load pre-recorded brush path from data for example
 tidygate_env <<- rlang::env()
-tidygate_env$select_data <- read.csv("data/interactive_gating_demo_select_data.csv")
-tidygate_env$brush_data <- read.csv("data/interactive_gating_demo_brush_data.csv")
+tidygate_env$select_data <- readr::read_csv("data/interactive_gating_demo_select_data.csv")
+tidygate_env$brush_data <- readr::read_csv("data/interactive_gating_demo_brush_data.csv")
 
 spe_gated <-
   spe |>
