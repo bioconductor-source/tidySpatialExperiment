@@ -310,23 +310,23 @@ spe |>
 
 ## Interactive gating
 
-For interactive selection of cells in space, tidySpatialExperiment experiment provides `gate_interactive()`. This function uses [tidygate](https://github.com/stemangiola/tidygate), shiny and plotly to launch an interactive plot overlaying cells in position with image data. Additional parameters can be used to specify point colour and shape by column value, and define the size and alpha of all points. Note that this feature is currently only available in the development version of tidySpatialExperiment. 
+For the interactive selection of cells in space, tidySpatialExperiment experiment provides `gate_interactive()`. This function uses [tidygate](https://github.com/stemangiola/tidygate), shiny and plotly to launch an interactive plot overlaying cells in position with image data. Additional parameters can be used to specify point colour, shape, size and alpha, either with a column in the SpatialExperiment object or a constant value.
 
 ```{r, eval=FALSE}
 spe_gated <- 
   spe |>
-  gate_interactive(colour_column = "in_tissue", alpha = 0.8)
+  gate_interactive(colour = "in_tissue", alpha = 0.8)
 ```
 ![](man/figures/gate_interactive_demo.gif)
 
 ```{r, echo=FALSE}
-# tidygate_env$select_data |> readr::write_csv("data/interactive_gating_demo_select_data.csv")
-# tidygate_env$brush_data |> readr::write_csv("data/interactive_gating_demo_brush_data.csv")
- 
 # Load pre-recorded brush path from data for example
+data("demo_select_data", package = "tidySpatialExperiment")
+data("demo_brush_data", package = "tidySpatialExperiment")
+
 tidygate_env <<- rlang::env()
-tidygate_env$select_data <- readr::read_csv("data/interactive_gating_demo_select_data.csv")
-tidygate_env$brush_data <- readr::read_csv("data/interactive_gating_demo_brush_data.csv")
+tidygate_env$select_data <- demo_select_data
+tidygate_env$brush_data <- demo_brush_data 
 
 spe_gated <-
   spe |>
@@ -334,16 +334,16 @@ spe_gated <-
   dplyr::rename(.gate_interactive = .gate_programmatic)
 ```
 
-A record of which points appear in which gates is appended to the SpatialExperiment object in the `.gate_interactive` column. To select cells which appear within any gates, the `lengths()` function can be used. To select cells which appear within a specific gate, `map_lgl()` can be used with `any()` to cehck each value in `.gate_interactive` for each cell. 
+A record of which points appear in which gates is appended to the SpatialExperiment object in the `.gate_interactive` column. To select cells which appear within any gates, filter for non-empty strings. To select cells which appear within a specific gate, string pattern matching can be used.
 
 ```{r}
 # Select cells within any gate
 spe_gated |> 
-  filter(lengths(.gate_interactive) > 0)
+  filter(.gate_interactive != "")
 
 # Select cells within gate 2
 spe_gated |>
-  filter(purrr::map_lgl(.gate_interactive, ~ any(2 %in% .x)))
+  filter(stringr::str_detect(.gate_interactive, "2"))
 ```
 
 Details of the gated points and lasso brush selection are stored within the `tidygate_env` 
@@ -363,7 +363,9 @@ path. This function can be used to make interactive gates reproducible. Here `ga
 
 ```{r}
 spe_gated |>
-  gate_programmatic(tidygate_env$brush_data)
+  gate_programmatic(tidygate_env$brush_data) |> 
+  filter(.gate_programmatic != "") |>
+  select(.gate_interactive, .gate_programmatic)
 ```
 
 # Special column behaviour

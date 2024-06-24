@@ -399,58 +399,40 @@ spe |>
 
 ## Interactive gating
 
-For interactive selection of cells in space, tidySpatialExperiment
+For the interactive selection of cells in space, tidySpatialExperiment
 experiment provides `gate_interactive()`. This function uses
 [tidygate](https://github.com/stemangiola/tidygate), shiny and plotly to
 launch an interactive plot overlaying cells in position with image data.
-Additional parameters can be used to specify point colour and shape by
-column value, and define the size and alpha of all points. Note that
-this feature is currently only available in the development version of
-tidySpatialExperiment.
+Additional parameters can be used to specify point colour, shape, size
+and alpha, either with a column in the SpatialExperiment object or a
+constant value.
 
 ``` r
 spe_gated <- 
   spe |>
-  gate_interactive(colour_column = "in_tissue", alpha = 0.8)
+  gate_interactive(colour = "in_tissue", alpha = 0.8)
 ```
 
 ![](man/figures/gate_interactive_demo.gif)
 
-    #  Rows: 5 Columns: 4
-    #  ── Column specification ────────────────────────────────────────────────────────
-    #  Delimiter: ","
-    #  dbl (4): x, y, key, .gate
-    #  
-    #  ℹ Use `spec()` to retrieve the full column specification for this data.
-    #  ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    #  Rows: 30 Columns: 3
-    #  ── Column specification ────────────────────────────────────────────────────────
-    #  Delimiter: ","
-    #  dbl (3): x, y, .gate
-    #  
-    #  ℹ Use `spec()` to retrieve the full column specification for this data.
-    #  ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    #  tidygate says: this feature is in early development and may undergo changes or contain bugs.
-
 A record of which points appear in which gates is appended to the
 SpatialExperiment object in the `.gate_interactive` column. To select
-cells which appear within any gates, the `lengths()` function can be
-used. To select cells which appear within a specific gate, `map_lgl()`
-can be used with `any()` to cehck each value in `.gate_interactive` for
-each cell.
+cells which appear within any gates, filter for non-empty strings. To
+select cells which appear within a specific gate, string pattern
+matching can be used.
 
 ``` r
 # Select cells within any gate
 spe_gated |> 
-  filter(lengths(.gate_interactive) > 0)
+  filter(.gate_interactive != "")
 #  # A SpatialExperiment-tibble abstraction: 4 × 8
 #  # Features = 50 | Cells = 4 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id .gate_interactive
-#    <chr>              <lgl>         <int>     <int> <chr>     <list>           
-#  1 AAACGAGACGGTTGAT-1 TRUE             35        79 section1  <dbl [1]>        
-#  2 AAACTGCTGGCTCCAA-1 TRUE             45        67 section1  <dbl [1]>        
-#  3 AAAGGGATGTAGCAAG-1 TRUE             24        62 section1  <dbl [2]>        
-#  4 AAAGGGCAGCTTGAAT-1 TRUE             24        26 section1  <dbl [1]>        
+#    <chr>              <lgl>         <int>     <int> <chr>     <chr>            
+#  1 AAACGAGACGGTTGAT-1 TRUE             35        79 section1  2                
+#  2 AAACTGCTGGCTCCAA-1 TRUE             45        67 section1  2                
+#  3 AAAGGGATGTAGCAAG-1 TRUE             24        62 section1  1,2              
+#  4 AAAGGGCAGCTTGAAT-1 TRUE             24        26 section1  1                
 #  # ℹ 2 more variables: pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
 ```
 
@@ -458,14 +440,14 @@ spe_gated |>
 
 # Select cells within gate 2
 spe_gated |>
-  filter(purrr::map_lgl(.gate_interactive, ~ any(2 %in% .x)))
+  filter(stringr::str_detect(.gate_interactive, "2"))
 #  # A SpatialExperiment-tibble abstraction: 3 × 8
 #  # Features = 50 | Cells = 3 | Assays = counts
 #    .cell              in_tissue array_row array_col sample_id .gate_interactive
-#    <chr>              <lgl>         <int>     <int> <chr>     <list>           
-#  1 AAACGAGACGGTTGAT-1 TRUE             35        79 section1  <dbl [1]>        
-#  2 AAACTGCTGGCTCCAA-1 TRUE             45        67 section1  <dbl [1]>        
-#  3 AAAGGGATGTAGCAAG-1 TRUE             24        62 section1  <dbl [2]>        
+#    <chr>              <lgl>         <int>     <int> <chr>     <chr>            
+#  1 AAACGAGACGGTTGAT-1 TRUE             35        79 section1  2                
+#  2 AAACTGCTGGCTCCAA-1 TRUE             45        67 section1  2                
+#  3 AAAGGGATGTAGCAAG-1 TRUE             24        62 section1  1,2              
 #  # ℹ 2 more variables: pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
 ```
 
@@ -510,20 +492,18 @@ results to the `.gate_programmatic` column.
 
 ``` r
 spe_gated |>
-  gate_programmatic(tidygate_env$brush_data)
-#  tidygate says: this feature is in early development and may undergo changes or contain bugs.
-#  # A SpatialExperiment-tibble abstraction: 50 × 9
-#  # Features = 50 | Cells = 50 | Assays = counts
-#    .cell              in_tissue array_row array_col sample_id .gate_interactive
-#    <chr>              <lgl>         <int>     <int> <chr>     <list>           
-#  1 AAACAACGAATAGTTC-1 FALSE             0        16 section1  <NULL>           
-#  2 AAACAAGTATCTCCCA-1 TRUE             50       102 section1  <NULL>           
-#  3 AAACAATCTACTAGCA-1 TRUE              3        43 section1  <NULL>           
-#  4 AAACACCAATAACTGC-1 TRUE             59        19 section1  <NULL>           
-#  5 AAACAGAGCGACTCCT-1 TRUE             14        94 section1  <NULL>           
-#  # ℹ 45 more rows
-#  # ℹ 3 more variables: .gate_programmatic <list>, pxl_col_in_fullres <int>,
-#  #   pxl_row_in_fullres <int>
+  gate_programmatic(tidygate_env$brush_data) |> 
+  filter(.gate_programmatic != "") |>
+  select(.gate_interactive, .gate_programmatic)
+#  tidySpatialExperiment says: Key columns are missing. A data frame is 
+#                          returned for independent data analysis.
+#  # A tibble: 4 × 2
+#    .gate_interactive .gate_programmatic
+#    <chr>             <chr>             
+#  1 2                 2                 
+#  2 2                 2                 
+#  3 1,2               1,2               
+#  4 1                 1
 ```
 
 # Special column behaviour

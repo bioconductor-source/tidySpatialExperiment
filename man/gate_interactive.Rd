@@ -7,8 +7,8 @@
 gate_interactive(
   spe,
   image_index = 1,
-  colour_column = NULL,
-  shape_column = NULL,
+  colour = NULL,
+  shape = NULL,
   alpha = 1,
   size = 2
 )
@@ -19,21 +19,19 @@ gate_interactive(
 \item{image_index}{The image to display if multiple are stored within the provided
 SpatialExperiment object.}
 
-\item{colour_column}{A column name string representing the point colour.}
+\item{colour}{A string representing the point colour column. Or, a colour code string compatible
+with ggplot2.}
 
-\item{shape_column}{A column name string representing the point shape. Must be coercible to
-a factor.}
+\item{shape}{A string representing the point shape column, coercible to a factor. Or, a shape code
+numeric compatible with ggplot2 (0-127)}
 
-\item{alpha}{A numeric value representing the opacity of points, with 1 being completely opaque
-and 0 being completely transparent.}
+\item{alpha}{A string representing the point alpha column, coercible to a factor. Or, an alpha numeric
+compatible with ggplot2 (0-1).}
 
-\item{size}{A numeric value representing the size of points.}
+\item{size}{A string representing the point shape column, coercible to a factor. Or, a size numeric
+compatible with ggplot2 (0-20).}
 }
 \value{
-A vector of lists, recording the gates each X and Y coordinate pair is within. A record
-of the selected points is stored in \code{tidygate_env$select_data} and a record of the gates is
-stored in \code{tidygate_env$brush_data}.
-
 The input SpatialExperiment object with a new column \code{.gate_interactive}, recording the
 gates each X and Y coordinate pair is within. A record of the selected points is stored in
 \code{tidygate_env$select_data} and a record of the gates is stored in \code{tidygate_env$brush_data}.

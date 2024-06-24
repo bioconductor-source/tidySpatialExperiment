@@ -317,6 +317,65 @@ spe |>
     geom_point()
 ```
 
+## Interactive gating
+
+For the interactive selection of cells in space, tidySpatialExperiment experiment provides `gate_interactive()`. This function uses [tidygate](https://github.com/stemangiola/tidygate), shiny and plotly to launch an interactive plot overlaying cells in position with image data. Additional parameters can be used to specify point colour, shape, size and alpha, either with a column in the SpatialExperiment object or a constant value.
+
+```{r, eval=FALSE}
+spe_gated <- 
+  spe |>
+  gate_interactive(colour = "in_tissue", alpha = 0.8)
+```
+![](man/figures/gate_interactive_demo.gif)
+
+```{r, echo=FALSE}
+# Load pre-recorded brush path from data for example
+data("demo_select_data", package = "tidySpatialExperiment")
+data("demo_brush_data", package = "tidySpatialExperiment")
+
+tidygate_env <<- rlang::env()
+tidygate_env$select_data <- demo_select_data
+tidygate_env$brush_data <- demo_brush_data 
+
+spe_gated <-
+  spe |>
+  gate_programmatic(tidygate_env$brush_data) |>
+  dplyr::rename(.gate_interactive = .gate_programmatic)
+```
+
+A record of which points appear in which gates is appended to the SpatialExperiment object in the `.gate_interactive` column. To select cells which appear within any gates, filter for non-empty strings. To select cells which appear within a specific gate, string pattern matching can be used.
+
+```{r}
+# Select cells within any gate
+spe_gated |> 
+  filter(.gate_interactive != "")
+
+# Select cells within gate 2
+spe_gated |>
+  filter(stringr::str_detect(.gate_interactive, "2"))
+```
+
+Details of the gated points and lasso brush selection are stored within the `tidygate_env` 
+environment. These variables are overwritten each time interactive gating is run, so save them
+right away if you would like to access them later. 
+
+```{r}
+# Information about the gated points 
+tidygate_env$select_data
+
+# Information about the lasso brush path
+tidygate_env$brush_data
+```
+
+`gate_programmatic` gates points programmatically by their spatial coordinates, and a predefined lasso brush 
+path. This function can be used to make interactive gates reproducible. Here `gate_programmatic` reproduces the previous defined interactive gates exactly and appends results to the `.gate_programmatic` column. 
+
+```{r}
+spe |>
+  gate_programmatic(tidygate_env$brush_data) |>
+  filter(.gate_programmatic != "")
+```
+
 # Special column behaviour
 
 Removing the `.cell` column will return a tibble. This is consistent

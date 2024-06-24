@@ -41,7 +41,7 @@ Imports:
     fansi,
     lifecycle,
     magick,
-    tidygate (>= 0.5.4),
+    tidygate (>= 1.0.2),
     shiny
 Suggests:
     BiocStyle,
@@ -62,7 +62,7 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
-    william-hutchison/tidygate@0c6f618fd6390b28d4a7d5b5a6177727083ed9c2
+    william-hutchison/tidygate@c5f6f0924e998f4e39da18df78624ba594fa0be5
 Biarch: true
 biocViews: Infrastructure, RNASeq, GeneExpression, Sequencing, Spatial, Transcriptomics, SingleCell
 Encoding: UTF-8
@@ -70,3 +70,4 @@ RoxygenNote: 7.3.1
 Roxygen: list(markdown = TRUE)
 URL: https://github.com/william-hutchison/tidySpatialExperiment, https://william-hutchison.github.io/tidySpatialExperiment/
 BugReports: https://github.com/william-hutchison/tidySpatialExperiment/issues
+LazyData: true
