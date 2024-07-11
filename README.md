@@ -577,3 +577,9 @@ spe |>
 #  Caused by error:
 #  ! object 'pxl_col_in_fullres' not found
 ```
+
+# Citation
+
+If you use tidySpatialExperiment in published research, please cite [The
+tidyomics ecosystem: enhancing omic data
+analyses](https://doi.org/10.1038/s41592-024-02299-2).
