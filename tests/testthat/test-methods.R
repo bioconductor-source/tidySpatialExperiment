@@ -53,14 +53,14 @@ test_that("rectangle", {
     expect_equal(sum(spe_filtered$in_rectangle, na.rm = TRUE), 8)
 })
 
-test_that("gate_programmatic", {
+test_that("gate", {
   
   data("demo_brush_data", package = "tidySpatialExperiment")
   
   expect_equal(
     spe |>
-      gate_programmatic(brush_data = demo_brush_data) |>
-      filter(.gate_programmatic != "") |>
+      gate(programmatic_gates = demo_brush_data) |>
+      filter(!is.na(.gated)) |>
       ncol(),
     8
   )

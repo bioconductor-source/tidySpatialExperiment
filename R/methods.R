@@ -281,71 +281,70 @@ ellipse <- function(spatial_coord1, spatial_coord2, center, axes_lengths) {
 #' @importFrom shiny runApp
 #' @importFrom tidygate ui
 #' @importFrom tidygate server
-#' @param spe A SpatialExperiment object
+#' @param spe A SpatialExperiment object.
 #' @param image_index The image to display if multiple are stored within the provided
 #' SpatialExperiment object. 
-#' @param colour A string representing the point colour column. Or, a colour code string compatible
-#' with ggplot2.
-#' @param shape A string representing the point shape column, coercible to a factor. Or, a shape code 
-#' numeric compatible with ggplot2 (0-127)
-#' @param alpha A string representing the point alpha column, coercible to a factor. Or, an alpha numeric 
-#' compatible with ggplot2 (0-1). 
-#' @param size A string representing the point shape column, coercible to a factor. Or, a size numeric 
-#' compatible with ggplot2 (0-20).
-#' @return The input SpatialExperiment object with a new column `.gate_interactive`, recording the 
-#' gates each X and Y coordinate pair is within. A record of the selected points is stored in 
-#' `tidygate_env$select_data` and a record of the gates is stored in `tidygate_env$brush_data`.
+#' @param colour A single colour string compatible with ggplot2. Or, a vector representing the 
+#' point colour.
+#' @param shape A single ggplot2 shape numeric ranging from 0 to 127. Or, a vector representing the 
+#' point shape, coercible to a factor of 6 or less levels.
+#' @param alpha A single ggplot2 alpha numeric ranging from 0 to 1.
+#' @param size A single ggplot2 size numeric ranging from 0 to 20.
+#' @return The input SpatialExperiment object with a new column `.gated`, recording the 
+#' gates each X and Y coordinate pair is within. If gates are drawn interactively, they are 
+#' temporarily saved to `tidygate_env$gates`
 #' @examples
-#' \dontrun{
 #' example(read10xVisium)
-#' spe |>
-#'     gate_interactive(colour = "in_tissue", alpha = 0.8)
+#' data(demo_brush_data, package = "tidySpatialExperiment")
+#' 
+#' if(interactive()) {
+#'     spe |>
+#'         gate(colour = "blue", shape = "in_tissue")
 #' }
-#' @export
 gate_interactive <-
   
-  function(spe, image_index = 1, colour = NULL, shape = NULL, alpha = 1, size = 2) {
+  function(spe, image_index, colour, shape, alpha, size) {
     
-    # Get available columns to check for optional aesthetics
-    available_columns <- 
-      spe |> 
-      colData() |> 
+    available_columns <-
+      spe |>
+      colData() |>
       colnames()
-    
-    # Create tibble with essential information
+
+    # Create tibble with necessary information
     data <- 
       tibble::tibble(
-        x_column = 
+        x = 
           spe |>
           pull(pxl_col_in_fullres), 
-        y_column = 
+        y = 
           spe |>
           pull(pxl_row_in_fullres)
       ) |>
-      dplyr::mutate(.key = dplyr::row_number()) 
+      dplyr::mutate(.key = dplyr::row_number())
     
-    # Add additional columns if available
+    # Optionally add colour and shape columns if provided
     if (!is.null(colour)) {
-      if (colour %in% available_columns) {
-        data$colour <- spe |> pull(sym(colour))
+      if(colour %in% available_columns) {
+        data <-
+          data |>
+          dplyr::mutate(colour = 
+                          spe |> 
+                          dplyr::pull(sym(colour))
+          )
       }
     }
     if (!is.null(shape)) {
-      if (shape %in% available_columns) {
-        data$shape <- spe |> pull(sym(shape))
-      }
+      if(shape %in% available_columns) {
+        data <-
+          data |>
+          dplyr::mutate(shape = 
+                          spe |> 
+                          dplyr::pull(sym(shape)) |>
+                          factor()
+          )
+        }
     }
-    if (!is.null(alpha)) {
-      if (alpha %in% available_columns) {
-        data$alpha <- spe |> pull(sym(alpha))
-      }
-    }
-    if (!is.null(size)) {
-      if (size %in% available_columns) {
-        data$size <- spe |> pull(sym(size))
-      }
-    }
-    
+
     # Prepare spatial information
     image <- 
       SpatialExperiment::imgData(spe)[1, ]@listData$data[[1]] |>
@@ -368,66 +367,68 @@ gate_interactive <-
     # Create plot 
     plot <-
       data |>
-      ggplot2::ggplot(ggplot2::aes( x = x_column, y = y_column,  key = .key)) +
-      ggplot2::geom_point() +
+      ggplot2::ggplot(ggplot2::aes(
+        x = x, y = y, key = .key
+      )) +
+      ggplot2::geom_point(alpha = alpha, size = size) +
       ggplot2::coord_fixed(
         xlim =  c(0, image_x_size), 
         ylim = rev(c(0, image_y_size)), 
         expand = FALSE,
         ratio = 1
-      ) +
-      ggplot2::labs(x = "pxl_col_in_fullres", y = "pxl_row_in_fullres")
-    
-    # Set aesthetic with column if available, otherwise use input argument value
+      )
+
+    # Add colour 
+    # Set colour to equal column value if provided
     if (!is.null(colour)) {
-      plot <- 
-        plot + 
-        ggplot2::aes(colour = colour) +
-        ggplot2::labs(colour = colour)
-    }
-    if (!is.null(shape)) {
-      if (shape %in% available_columns) {
+      if(colour %in% available_columns) {
+          plot <- 
+            plot + 
+            ggplot2::aes(colour = colour)
+          
+      # Set to equal constant if not a column symbol and remove legend
+      } else { 
         plot <- 
           plot + 
-          ggplot2::aes(shape = shape) +
-          ggplot2::labs(shape = shape)
-      } else {
-      plot <-
-        plot + 
-        ggplot2::aes(shape = "shape") +
-        ggplot2::scale_shape_manual(values = shape) +
-        ggplot2::guides(shape = "none")
-      }
-    }
-    if (!is.null(alpha)) {
-      if (alpha %in% available_columns) {
-        plot <- 
-          plot + 
-          ggplot2::aes(alpha = alpha) +
-          ggplot2::labs(alpha = alpha)
-      } else {
-        plot <-
-          plot + 
-          ggplot2::aes(alpha = "alpha") +
-          ggplot2::scale_alpha_manual(values = alpha) +
-          ggplot2::guides(alpha = "none")
-      }
-    }
-    if (!is.null(size)) {
-      if (size %in% available_columns) {
-        plot <- 
-          plot + 
-          ggplot2::aes(size = size) +
-          ggplot2::labs(size = size)
-      } else {
-        plot <-
-          plot + 
-          ggplot2::aes(size = "size") +
-          ggplot2::scale_size_manual(values = size) +
-          ggplot2::guides(size = "none")
+          ggplot2::aes(colour = colour) +
+          ggplot2::scale_colour_manual(values = colour) +
+          ggplot2::guides(colour = "none")
       }
     }
     
+    # Add shape 
+    if (!is.null(shape)) {
+      if(shape %in% available_columns) {
+        plot <- 
+          plot + 
+          ggplot2::aes(shape = as.factor(shape))
+      } else {
+        plot <- 
+          plot + 
+          ggplot2::aes(shape = "fixed_shape") +
+          ggplot2::scale_shape_manual(values = shape) +
+          ggplot2::guides(shape = "none")
+      }
+    }
+    
+    # Add alpha
+    if (!is.null(alpha)) {
+      plot <-
+        plot +
+        ggplot2::aes(alpha = "fixed_alpha") +
+        ggplot2::scale_alpha_manual(values = alpha) +
+        ggplot2::guides(alpha = "none")
+    }
+
+    # Add size
+    if (!is.null(size)) {
+      plot <-
+        plot +
+        ggplot2::aes(size = "fixed_size") +
+        ggplot2::scale_size_manual(values = size) +
+        ggplot2::guides(size = "none")
+    }
+
     # Convert to plotly and add background image
     plot <-
       plot |>
@@ -452,15 +453,19 @@ gate_interactive <-
     tidygate_env$input_data <- data
     tidygate_env$input_plot <- plot
     tidygate_env$event_count <- 1
+    print("almost")
 
     # Launch Shiny App
     app <- shiny::shinyApp(tidygate::ui, tidygate::server)
     gate_vector <-
       shiny::runApp(app, port = 1234) |>
-      purrr::map_chr(~ .x |> paste(collapse = ","))
+      purrr::map_chr(~ .x |> paste(collapse = ",")) |>
+      purrr::map_chr(~ ifelse(.x == "", NA, .x))
+    
+    message("tidySpatialExperiment says: interactively drawn gates are temporarily saved to tidygate_env$gates")
 
     # Return interactive gate information
-    spe$.gate_interactive <- gate_vector
+    spe$.gated <- gate_vector
     return(spe)
   }
 
@@ -470,24 +475,23 @@ gate_interactive <-
 #' Programmatic gating is based on the package [gatepoints](https://github.com/wjawaid/gatepoints)
 #' by Wajid Jawaid. 
 #' 
-#' @importFrom tidygate gate_programmatic
+#' @importFrom tidygate gate
 #' @importFrom tibble tibble
 #' @importFrom dplyr mutate
 #' @param spe A SpatialExperiment object
-#' @param brush_data A `data.frame` recording the gate brush data, as output by 
-#' `tidygate_env$brush_data`. The column `x` records X coordinates, the column `y` records Y 
-#' coordinates and the column `.gate` records the gate.
-#' @return The input SpatialExperiment object with a new column `.gate_programmatic`, recording the 
-#' gates each X and Y coordinate pair is within.
+#' @param programmatic_gates A `data.frame` recording the gate brush data, as output by 
+#' `tidygate_env$gates`. The column `x` records X coordinates, the column `y` records Y coordinates 
+#' and the column `.gated` records the gate.
+#' @return The input SpatialExperiment object with a new column `.gated`, recording the gates each X
+#'  and Y coordinate pair is within.
 #' @examples
 #' example(read10xVisium)
 #' data(demo_brush_data, package = "tidySpatialExperiment")
 #' 
-#' spe_gated |>
-#'     gate_programmatic(brush_data = demo_brush_data)
-#' @export
+#' spe |>
+#'   gate(programmatic_gates = demo_brush_data)
 gate_programmatic <-
-  function(spe, brush_data) {
+  function(spe, programmatic_gates) {
     
     # Format spatial data for tidygate
     data <- 
@@ -501,11 +505,64 @@ gate_programmatic <-
       ) |>
       
       # Pass data to tidygate
-      dplyr::mutate(.gate_programmatic = tidygate::gate_programmatic(
-       x = dimension_x, y = dimension_y, brush_data = brush_data
+      dplyr::mutate(.gate_programmatic = tidygate::gate(
+       x = dimension_x, y = dimension_y, programmatic_gates = programmatic_gates
       ))
     
     # Return programmatic gate information
-    spe$.gate_programmatic <- data$.gate_programmatic
+    spe$.gated <- data$.gate_programmatic
+    
     return(spe)
+  }
+
+
+#' Interactively gate cells by spatial coordinates
+#' 
+#' @description
+#' Gate cells based on their X and Y coordinates. By default, this function launches an interactive
+#' scatter plot with image data overlaid. Colour, shape, size and alpha can be defined as constant 
+#' values, or can be controlled by the values of a specified column. 
+#' 
+#' If previously drawn gates are supplied to the `programmatic_gates` argument, cells will be gated 
+#' programmatically. This feature allows the reproduction of previously drawn interactive gates.
+#' Programmatic gating is based on the package gatepoints by Wajid Jawaid. 
+#' 
+#' @param spe A SpatialExperiment object
+#' @param image_index The image to display if multiple are stored within the provided
+#' SpatialExperiment object. 
+#' @param colour A single colour string compatible with ggplot2. Or, a vector representing the 
+#' point colour.
+#' @param shape A single ggplot2 shape numeric ranging from 0 to 127. Or, a vector representing the 
+#' point shape, coercible to a factor of 6 or less levels.
+#' @param alpha A single ggplot2 alpha numeric ranging from 0 to 1.
+#' @param size A single ggplot2 size numeric ranging from 0 to 20.
+#' @param programmatic_gates A `data.frame` of the gate brush data, as saved in 
+#' `tidygate_env$gates`. The column `x` records X coordinates, the column `y` records Y coordinates 
+#' and the column `.gate` records the gate number. When this argument is supplied, gates will be 
+#' drawn programmatically.
+#' @return A vector of strings, of the gates each X and Y coordinate pair is within. If gates are
+#' drawn interactively, they are temporarily saved to `tidygate_env$gates`.
+#' @examples 
+#' example(read10xVisium)
+#' data(demo_brush_data, package = "tidySpatialExperiment")
+#' 
+#' # Gate points interactively
+#' if(interactive()) {
+#'     spe |>
+#'         gate(colour = "blue", shape = "in_tissue")
+#' }
+#' 
+#' # Gate points programmatically
+#' spe |>
+#'   gate(programmatic_gates = demo_brush_data)
+#' @export
+gate <-
+  function(spe, image_index = 1, colour = NULL, shape = NULL, alpha = 1, size = 2, programmatic_gates = NULL) {
+    
+    if (is.null(programmatic_gates)) {
+      gate_interactive(spe = spe, image_index = image_index, colour = colour, shape = shape, 
+                       alpha = alpha, size = size)
+    } else {
+      gate_programmatic(spe = spe, programmatic_gates = programmatic_gates)
+    }
   }

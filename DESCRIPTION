@@ -41,7 +41,7 @@ Imports:
     fansi,
     lifecycle,
     magick,
-    tidygate (>= 1.0.2),
+    tidygate (>= 1.0.13),
     shiny
 Suggests:
     BiocStyle,

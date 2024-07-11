@@ -166,9 +166,6 @@ spe |>
 #  AAACACCAATAACTGC-1      TRUE        59        19    section1
 #  AAACAGAGCGACTCCT-1      TRUE        14        94    section1
 #  AAACAGCTTTCAGAAG-1     FALSE        43         9    section1
-```
-
-``` r
 
 spe |> 
     spatialCoords() |>
@@ -180,9 +177,6 @@ spe |>
 #  AAACACCAATAACTGC-1               2519               8315
 #  AAACAGAGCGACTCCT-1               7679               2927
 #  AAACAGCTTTCAGAAG-1               1831               6400
-```
-
-``` r
 
 spe |>
     imgData()
@@ -250,9 +244,6 @@ spe_nested
 #    sample_id data           
 #    <chr>     <list>         
 #  1 section1  <SptlExpr[,50]>
-```
-
-``` r
 
 # Unnest the nested SpatialExperiment objects
 spe_nested |>
@@ -338,9 +329,6 @@ spe |>
 #  # ℹ 45 more rows
 #  # ℹ 3 more variables: ENSMUSG00000042501 <dbl>, pxl_col_in_fullres <int>,
 #  #   pxl_row_in_fullres <int>
-```
-
-``` r
 
 # Join feature data in long format, discarding the SpatialExperiment object
 spe |>
@@ -400,7 +388,7 @@ spe |>
 ## Interactive gating
 
 For the interactive selection of cells in space, tidySpatialExperiment
-experiment provides `gate_interactive()`. This function uses
+experiment provides `gate()`. This function uses
 [tidygate](https://github.com/stemangiola/tidygate), shiny and plotly to
 launch an interactive plot overlaying cells in position with image data.
 Additional parameters can be used to specify point colour, shape, size
@@ -410,70 +398,52 @@ constant value.
 ``` r
 spe_gated <- 
   spe |>
-  gate_interactive(colour = "in_tissue", alpha = 0.8)
+  gate(colour = "in_tissue", alpha = 0.8)
 ```
 
 ![](man/figures/gate_interactive_demo.gif)
 
 A record of which points appear in which gates is appended to the
-SpatialExperiment object in the `.gate_interactive` column. To select
-cells which appear within any gates, filter for non-empty strings. To
-select cells which appear within a specific gate, string pattern
-matching can be used.
+SpatialExperiment object in the `.gated` column. To select cells which
+appear within any gates, filter for non-NA values. To select cells which
+appear within a specific gate, string pattern matching can be used.
 
 ``` r
 # Select cells within any gate
 spe_gated |> 
-  filter(.gate_interactive != "")
+  filter(!is.na(.gated))
 #  # A SpatialExperiment-tibble abstraction: 4 × 8
 #  # Features = 50 | Cells = 4 | Assays = counts
-#    .cell              in_tissue array_row array_col sample_id .gate_interactive
-#    <chr>              <lgl>         <int>     <int> <chr>     <chr>            
-#  1 AAACGAGACGGTTGAT-1 TRUE             35        79 section1  2                
-#  2 AAACTGCTGGCTCCAA-1 TRUE             45        67 section1  2                
-#  3 AAAGGGATGTAGCAAG-1 TRUE             24        62 section1  1,2              
-#  4 AAAGGGCAGCTTGAAT-1 TRUE             24        26 section1  1                
-#  # ℹ 2 more variables: pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
-```
-
-``` r
-
+#    .cell        in_tissue array_row array_col sample_id .gated pxl_col_in_fullres
+#    <chr>        <lgl>         <int>     <int> <chr>     <chr>               <int>
+#  1 AAACGAGACGG… TRUE             35        79 section1  2                    6647
+#  2 AAACTGCTGGC… TRUE             45        67 section1  2                    5821
+#  3 AAAGGGATGTA… TRUE             24        62 section1  1,2                  5477
+#  4 AAAGGGCAGCT… TRUE             24        26 section1  1                    3000
+#  # ℹ 1 more variable: pxl_row_in_fullres <int>
 # Select cells within gate 2
 spe_gated |>
-  filter(stringr::str_detect(.gate_interactive, "2"))
+  filter(stringr::str_detect(.gated, "2"))
 #  # A SpatialExperiment-tibble abstraction: 3 × 8
 #  # Features = 50 | Cells = 3 | Assays = counts
-#    .cell              in_tissue array_row array_col sample_id .gate_interactive
-#    <chr>              <lgl>         <int>     <int> <chr>     <chr>            
-#  1 AAACGAGACGGTTGAT-1 TRUE             35        79 section1  2                
-#  2 AAACTGCTGGCTCCAA-1 TRUE             45        67 section1  2                
-#  3 AAAGGGATGTAGCAAG-1 TRUE             24        62 section1  1,2              
-#  # ℹ 2 more variables: pxl_col_in_fullres <int>, pxl_row_in_fullres <int>
+#    .cell        in_tissue array_row array_col sample_id .gated pxl_col_in_fullres
+#    <chr>        <lgl>         <int>     <int> <chr>     <chr>               <int>
+#  1 AAACGAGACGG… TRUE             35        79 section1  2                    6647
+#  2 AAACTGCTGGC… TRUE             45        67 section1  2                    5821
+#  3 AAAGGGATGTA… TRUE             24        62 section1  1,2                  5477
+#  # ℹ 1 more variable: pxl_row_in_fullres <int>
 ```
 
-Details of the gated points and lasso brush selection are stored within
-the `tidygate_env` environment. These variables are overwritten each
-time interactive gating is run, so save them right away if you would
-like to access them later.
+Details of the interactively drawn gates are saved to
+`tidygate_env$gates`. This variable is overwritten each time interactive
+gates are drawn, so save it right away if you would like to access it
+later.
 
 ``` r
-# Information about the gated points 
-tidygate_env$select_data
-#  # A tibble: 5 × 4
-#        x     y   key .gate
-#    <dbl> <dbl> <dbl> <dbl>
-#  1  5477  4125    43     1
-#  2  3000  4125    44     1
-#  3  6647  5442    21     2
-#  4  5821  6639    31     2
-#  5  5477  4125    43     2
-```
-
-``` r
-
-# Information about the lasso brush path
-tidygate_env$brush_data
-#  # A tibble: 30 × 3
+# Inspect previously drawn gates
+tidygate_env$gates |>
+  head()
+#  # A tibble: 6 × 3
 #        x     y .gate
 #    <dbl> <dbl> <dbl>
 #  1 4310. 3125.     1
@@ -481,30 +451,37 @@ tidygate_env$brush_data
 #  3 2942. 3521.     1
 #  4 2834. 3665.     1
 #  5 2834. 4385.     1
-#  # ℹ 25 more rows
+#  # ℹ 1 more row
 ```
-
-`gate_programmatic` gates points programmatically by their spatial
-coordinates, and a predefined lasso brush path. This function can be
-used to make interactive gates reproducible. Here `gate_programmatic`
-reproduces the previous defined interactive gates exactly and appends
-results to the `.gate_programmatic` column.
 
 ``` r
-spe_gated |>
-  gate_programmatic(tidygate_env$brush_data) |> 
-  filter(.gate_programmatic != "") |>
-  select(.gate_interactive, .gate_programmatic)
-#  tidySpatialExperiment says: Key columns are missing. A data frame is 
-#                          returned for independent data analysis.
-#  # A tibble: 4 × 2
-#    .gate_interactive .gate_programmatic
-#    <chr>             <chr>             
-#  1 2                 2                 
-#  2 2                 2                 
-#  3 1,2               1,2               
-#  4 1                 1
+# Save if needed
+tidygate_env$gates |>
+  write_rds("important_gates.rds")
 ```
+
+If previously drawn gates are supplied to the `programmatic_gates`
+argument, cells will be gated programmatically. This feature allows the
+reproduction of previously drawn interactive gates.
+
+``` r
+important_gates <-
+  read_rds("important_gates.rds")
+
+spe |>
+  gate(programmatic_gates = important_gates)) |>
+  filter(!is.na(.gated))
+```
+
+    #  # A SpatialExperiment-tibble abstraction: 4 × 8
+    #  # Features = 50 | Cells = 4 | Assays = counts
+    #    .cell        in_tissue array_row array_col sample_id .gated pxl_col_in_fullres
+    #    <chr>        <lgl>         <int>     <int> <chr>     <chr>               <int>
+    #  1 AAACGAGACGG… TRUE             35        79 section1  2                    6647
+    #  2 AAACTGCTGGC… TRUE             45        67 section1  2                    5821
+    #  3 AAAGGGATGTA… TRUE             24        62 section1  1,2                  5477
+    #  4 AAAGGGCAGCT… TRUE             24        26 section1  1                    3000
+    #  # ℹ 1 more variable: pxl_row_in_fullres <int>
 
 # Special column behaviour
 
@@ -547,9 +524,6 @@ spe |>
 #  5 AAACAGAGCGACTCCT-1 TRUE             14        94 section1                7679
 #  # ℹ 45 more rows
 #  # ℹ 1 more variable: pxl_row_in_fullres <int>
-```
-
-``` r
 
 # This change maintains separation of sample_ids and is permitted
 spe |> 
@@ -566,9 +540,6 @@ spe |>
 #  5 AAACAGAGCGACTCCT-1 TRUE             14        94 section1_…               7679
 #  # ℹ 45 more rows
 #  # ℹ 1 more variable: pxl_row_in_fullres <int>
-```
-
-``` r
 
 # This change does not maintain separation of sample_ids and produces an error
 spe |>
@@ -597,9 +568,6 @@ spe |>
 #  Error in `select_helper()`:
 #  ! Can't select columns that don't exist.
 #  ✖ Column `pxl_col_in_fullres` doesn't exist.
-```
-
-``` r
 
 # Attempting to modify pxl_col_in_fullres produces an error
 spe |> 

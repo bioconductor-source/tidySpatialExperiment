@@ -4,45 +4,38 @@
 \alias{gate_interactive}
 \title{Gate interactive}
 \usage{
-gate_interactive(
-  spe,
-  image_index = 1,
-  colour = NULL,
-  shape = NULL,
-  alpha = 1,
-  size = 2
-)
+gate_interactive(spe, image_index, colour, shape, alpha, size)
 }
 \arguments{
-\item{spe}{A SpatialExperiment object}
+\item{spe}{A SpatialExperiment object.}
 
 \item{image_index}{The image to display if multiple are stored within the provided
 SpatialExperiment object.}
 
-\item{colour}{A string representing the point colour column. Or, a colour code string compatible
-with ggplot2.}
+\item{colour}{A single colour string compatible with ggplot2. Or, a vector representing the
+point colour.}
 
-\item{shape}{A string representing the point shape column, coercible to a factor. Or, a shape code
-numeric compatible with ggplot2 (0-127)}
+\item{shape}{A single ggplot2 shape numeric ranging from 0 to 127. Or, a vector representing the
+point shape, coercible to a factor of 6 or less levels.}
 
-\item{alpha}{A string representing the point alpha column, coercible to a factor. Or, an alpha numeric
-compatible with ggplot2 (0-1).}
+\item{alpha}{A single ggplot2 alpha numeric ranging from 0 to 1.}
 
-\item{size}{A string representing the point shape column, coercible to a factor. Or, a size numeric
-compatible with ggplot2 (0-20).}
+\item{size}{A single ggplot2 size numeric ranging from 0 to 20.}
 }
 \value{
-The input SpatialExperiment object with a new column \code{.gate_interactive}, recording the
-gates each X and Y coordinate pair is within. A record of the selected points is stored in
-\code{tidygate_env$select_data} and a record of the gates is stored in \code{tidygate_env$brush_data}.
+The input SpatialExperiment object with a new column \code{.gated}, recording the
+gates each X and Y coordinate pair is within. If gates are drawn interactively, they are
+temporarily saved to \code{tidygate_env$gates}
 }
 \description{
 Interactively gate points by their location in space, with image data overlaid.
 }
 \examples{
-\dontrun{
 example(read10xVisium)
-spe |>
-    gate_interactive()
+data(demo_brush_data, package = "tidySpatialExperiment")
+
+if(interactive()) {
+    spe |>
+        gate(colour = "blue", shape = "in_tissue")
 }
 }
