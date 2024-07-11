@@ -1,3 +1,7 @@
+# Define otherwise undefined global variables for R CMD check
+utils::globalVariables(c("x", "y", "dimension_x", "dimension_y", "pxl_col_in_fullres", 
+                         "pxl_row_in_fullres", ".key"))
+
 #' Show
 #'
 #' @importFrom methods getMethod

@@ -130,9 +130,6 @@ example(read10xVisium)
 ```
 
 ```{r, echo=FALSE}
-# Load chromote for knitting
-library(chromote)
-
 # Remove unneeded second sample from demo data
 spe <-
     spe |>
