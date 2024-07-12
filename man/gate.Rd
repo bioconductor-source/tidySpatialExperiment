@@ -11,11 +11,12 @@ gate(
   shape = NULL,
   alpha = 1,
   size = 2,
+  hide_points = FALSE,
   programmatic_gates = NULL
 )
 }
 \arguments{
-\item{spe}{A SpatialExperiment object}
+\item{spe}{A SpatialExperiment object.}
 
 \item{image_index}{The image to display if multiple are stored within the provided
 SpatialExperiment object.}
@@ -29,6 +30,9 @@ point shape, coercible to a factor of 6 or less levels.}
 \item{alpha}{A single ggplot2 alpha numeric ranging from 0 to 1.}
 
 \item{size}{A single ggplot2 size numeric ranging from 0 to 20.}
+
+\item{hide_points}{A logical. If TRUE, points are hidden during interactive gating. This can
+greatly improve performance with large SpatialExperiment objects.}
 
 \item{programmatic_gates}{A \code{data.frame} of the gate brush data, as saved in
 \code{tidygate_env$gates}. The column \code{x} records X coordinates, the column \code{y} records Y coordinates

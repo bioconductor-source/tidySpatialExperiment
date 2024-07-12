@@ -307,7 +307,7 @@ ellipse <- function(spatial_coord1, spatial_coord2, center, axes_lengths) {
 #' }
 gate_interactive <-
   
-  function(spe, image_index, colour, shape, alpha, size) {
+  function(spe, image_index, colour, shape, alpha, size, hide_points) {
     
     available_columns <-
       spe |>
@@ -371,16 +371,20 @@ gate_interactive <-
     # Create plot 
     plot <-
       data |>
-      ggplot2::ggplot(ggplot2::aes(
-        x = x, y = y, key = .key
-      )) +
-      ggplot2::geom_point(alpha = alpha, size = size) +
+      ggplot2::ggplot(ggplot2::aes(x = x, y = y, key = .key)) +
       ggplot2::coord_fixed(
         xlim =  c(0, image_x_size), 
         ylim = rev(c(0, image_y_size)), 
         expand = FALSE,
         ratio = 1
       )
+    
+    # Add points to plot if not hidden
+    if (hide_points == FALSE) {
+      plot <-
+        plot +
+        ggplot2::geom_point(alpha = alpha, size = size)
+    }
 
     # Add colour 
     # Set colour to equal column value if provided
@@ -461,7 +465,7 @@ gate_interactive <-
 
     # Launch Shiny App
     app <- shiny::shinyApp(tidygate::ui, tidygate::server)
-    gate_vector <-
+    gated_vector <-
       shiny::runApp(app, port = 1234) |>
       purrr::map_chr(~ .x |> paste(collapse = ",")) |>
       purrr::map_chr(~ ifelse(.x == "", NA, .x))
@@ -469,8 +473,8 @@ gate_interactive <-
     message("tidySpatialExperiment says: interactively drawn gates are temporarily saved to tidygate_env$gates")
 
     # Return interactive gate information
-    spe$.gated <- gate_vector
-    return(spe)
+    #spe$.gated <- gate_vector
+    return(gated_vector)
   }
 
 #' Gate spatial data with pre-recorded lasso selection coordinates
@@ -514,9 +518,9 @@ gate_programmatic <-
       ))
     
     # Return programmatic gate information
-    spe$.gated <- data$.gate_programmatic
+    #spe$.gated <- data$.gate_programmatic
     
-    return(spe)
+    return(data$.gate_programmatic)
   }
 
 
@@ -531,7 +535,7 @@ gate_programmatic <-
 #' programmatically. This feature allows the reproduction of previously drawn interactive gates.
 #' Programmatic gating is based on the package gatepoints by Wajid Jawaid. 
 #' 
-#' @param spe A SpatialExperiment object
+#' @param spe A SpatialExperiment object.
 #' @param image_index The image to display if multiple are stored within the provided
 #' SpatialExperiment object. 
 #' @param colour A single colour string compatible with ggplot2. Or, a vector representing the 
@@ -540,6 +544,8 @@ gate_programmatic <-
 #' point shape, coercible to a factor of 6 or less levels.
 #' @param alpha A single ggplot2 alpha numeric ranging from 0 to 1.
 #' @param size A single ggplot2 size numeric ranging from 0 to 20.
+#' @param hide_points A logical. If TRUE, points are hidden during interactive gating. This can 
+#' greatly improve performance with large SpatialExperiment objects. 
 #' @param programmatic_gates A `data.frame` of the gate brush data, as saved in 
 #' `tidygate_env$gates`. The column `x` records X coordinates, the column `y` records Y coordinates 
 #' and the column `.gate` records the gate number. When this argument is supplied, gates will be 
@@ -561,12 +567,27 @@ gate_programmatic <-
 #'   gate(programmatic_gates = demo_brush_data)
 #' @export
 gate <-
-  function(spe, image_index = 1, colour = NULL, shape = NULL, alpha = 1, size = 2, programmatic_gates = NULL) {
+  function(spe, image_index = 1, colour = NULL, shape = NULL, alpha = 1, size = 2, 
+           hide_points = FALSE, programmatic_gates = NULL) {
     
+    # Launch interactive gating
     if (is.null(programmatic_gates)) {
-      gate_interactive(spe = spe, image_index = image_index, colour = colour, shape = shape, 
-                       alpha = alpha, size = size)
+      gated_vector <-
+        gate_interactive(spe = spe, image_index = image_index, colour = colour, shape = shape, 
+                       alpha = alpha, size = size, hide_points = hide_points)
+      
+      # Then apply programmatic gating to select points if hidden
+      if (hide_points == TRUE) {
+        gated_vector <- 
+          gate_programmatic(spe = spe, programmatic_gates = tidygate_env$gates)
+      }
+    
+    # Launch programmatic gating
     } else {
-      gate_programmatic(spe = spe, programmatic_gates = programmatic_gates)
+      gated_vector <- 
+        gate_programmatic(spe = spe, programmatic_gates = programmatic_gates)
     }
+    
+    spe$.gated <- gated_vector
+    return(spe)
   }

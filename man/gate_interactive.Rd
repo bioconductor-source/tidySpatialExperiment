@@ -4,7 +4,7 @@
 \alias{gate_interactive}
 \title{Gate interactive}
 \usage{
-gate_interactive(spe, image_index, colour, shape, alpha, size)
+gate_interactive(spe, image_index, colour, shape, alpha, size, hide_points)
 }
 \arguments{
 \item{spe}{A SpatialExperiment object.}
