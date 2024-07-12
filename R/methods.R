@@ -461,7 +461,6 @@ gate_interactive <-
     tidygate_env$input_data <- data
     tidygate_env$input_plot <- plot
     tidygate_env$event_count <- 1
-    print("almost")
 
     # Launch Shiny App
     app <- shiny::shinyApp(tidygate::ui, tidygate::server)
@@ -470,10 +469,13 @@ gate_interactive <-
       purrr::map_chr(~ .x |> paste(collapse = ",")) |>
       purrr::map_chr(~ ifelse(.x == "", NA, .x))
     
-    message("tidySpatialExperiment says: interactively drawn gates are temporarily saved to tidygate_env$gates")
-
-    # Return interactive gate information
-    #spe$.gated <- gate_vector
+    # Set to NULL if no gates drawn
+    if (nrow(tidygate_env$gates) == 0) {
+      tidygate_env$gates <- NULL
+    } else {
+      message("tidySpatialExperiment says: interactively drawn gates are temporarily saved to tidygate_env$gates")
+    }
+    
     return(gated_vector)
   }
 
@@ -516,10 +518,7 @@ gate_programmatic <-
       dplyr::mutate(.gate_programmatic = tidygate::gate(
        x = dimension_x, y = dimension_y, programmatic_gates = programmatic_gates
       ))
-    
-    # Return programmatic gate information
-    #spe$.gated <- data$.gate_programmatic
-    
+
     return(data$.gate_programmatic)
   }
 
@@ -572,20 +571,22 @@ gate <-
     
     # Launch interactive gating
     if (is.null(programmatic_gates)) {
-      gated_vector <-
-        gate_interactive(spe = spe, image_index = image_index, colour = colour, shape = shape, 
-                       alpha = alpha, size = size, hide_points = hide_points)
+      gated_vector <- gate_interactive(spe = spe, image_index = image_index, colour = colour, 
+                                       shape = shape, alpha = alpha, size = size, 
+                                       hide_points = hide_points)
       
       # Then apply programmatic gating to select points if hidden
       if (hide_points == TRUE) {
-        gated_vector <- 
-          gate_programmatic(spe = spe, programmatic_gates = tidygate_env$gates)
+        if (!is.null(tidygate_env$gates)) {
+          gated_vector <- gate_programmatic(spe = spe, programmatic_gates = tidygate_env$gates)
+        } else {
+          gated_vector <- NA
+        }
       }
     
     # Launch programmatic gating
     } else {
-      gated_vector <- 
-        gate_programmatic(spe = spe, programmatic_gates = programmatic_gates)
+      gated_vector <- gate_programmatic(spe = spe, programmatic_gates = programmatic_gates)
     }
     
     spe$.gated <- gated_vector
