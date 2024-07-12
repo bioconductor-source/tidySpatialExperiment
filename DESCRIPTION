@@ -55,8 +55,6 @@ Suggests:
     tidySummarizedExperiment
 VignetteBuilder: 
     knitr
-Remotes:
-    william-hutchison/tidygate@c5f6f0924e998f4e39da18df78624ba594fa0be5
 Biarch: true
 biocViews: Infrastructure, RNASeq, GeneExpression, Sequencing, Spatial, Transcriptomics, SingleCell
 Encoding: UTF-8
