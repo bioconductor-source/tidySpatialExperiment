@@ -1,6 +1,6 @@
 # Define otherwise undefined global variables for R CMD check
 utils::globalVariables(c("x", "y", "dimension_x", "dimension_y", "pxl_col_in_fullres", 
-                         "pxl_row_in_fullres", ".key"))
+                         "pxl_row_in_fullres", ".key", "tidygate_env"))
 
 #' Show
 #'
@@ -294,6 +294,8 @@ ellipse <- function(spatial_coord1, spatial_coord2, center, axes_lengths) {
 #' point shape, coercible to a factor of 6 or less levels.
 #' @param alpha A single ggplot2 alpha numeric ranging from 0 to 1.
 #' @param size A single ggplot2 size numeric ranging from 0 to 20.
+#' @param hide_points A logical. If TRUE, points are hidden during interactive gating. This can 
+#' greatly improve performance with large SpatialExperiment objects. 
 #' @return The input SpatialExperiment object with a new column `.gated`, recording the 
 #' gates each X and Y coordinate pair is within. If gates are drawn interactively, they are 
 #' temporarily saved to `tidygate_env$gates`

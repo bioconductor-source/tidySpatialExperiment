@@ -21,6 +21,9 @@ point shape, coercible to a factor of 6 or less levels.}
 \item{alpha}{A single ggplot2 alpha numeric ranging from 0 to 1.}
 
 \item{size}{A single ggplot2 size numeric ranging from 0 to 20.}
+
+\item{hide_points}{A logical. If TRUE, points are hidden during interactive gating. This can
+greatly improve performance with large SpatialExperiment objects.}
 }
 \value{
 The input SpatialExperiment object with a new column \code{.gated}, recording the
