@@ -4,21 +4,28 @@
 \alias{gate_programmatic}
 \title{Gate spatial data with pre-recorded lasso selection coordinates}
 \usage{
-gate_programmatic(spe, gates)
+gate_programmatic(spe, programmatic_gates)
 }
 \arguments{
 \item{spe}{A SpatialExperiment object}
 
-\item{gates}{A \code{data.frame} recording the gate brush data, as output by
-\code{tidygate_env$brush_data}. The column \code{x} records X coordinates, the column \code{y} records Y
-coordinates and the column \code{.gate} records the gate.}
+\item{programmatic_gates}{A \code{data.frame} recording the gate brush data, as output by
+\code{tidygate_env$gates}. The column \code{x} records X coordinates, the column \code{y} records Y coordinates
+and the column \code{.gated} records the gate.}
 }
 \value{
-The input SpatialExperiment object with a new column \code{.gate_programmatic}, recording the
-gates each X and Y coordinate pair is within.
+The input SpatialExperiment object with a new column \code{.gated}, recording the gates each X
+and Y coordinate pair is within.
 }
 \description{
 A helpful way to repeat previous interactive lasso selections to enable reproducibility.
 Programmatic gating is based on the package \href{https://github.com/wjawaid/gatepoints}{gatepoints}
 by Wajid Jawaid.
+}
+\examples{
+example(read10xVisium)
+data(demo_brush_data, package = "tidySpatialExperiment")
+
+spe |>
+  gate(programmatic_gates = demo_brush_data)
 }

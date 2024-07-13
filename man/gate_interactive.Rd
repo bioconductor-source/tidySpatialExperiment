@@ -4,47 +4,41 @@
 \alias{gate_interactive}
 \title{Gate interactive}
 \usage{
-gate_interactive(
-  spe,
-  image_index = 1,
-  colour_column = NULL,
-  shape_column = NULL,
-  alpha = 1,
-  size = 2
-)
+gate_interactive(spe, image_index, colour, shape, alpha, size, hide_points)
 }
 \arguments{
-\item{spe}{A SpatialExperiment object}
+\item{spe}{A SpatialExperiment object.}
 
 \item{image_index}{The image to display if multiple are stored within the provided
 SpatialExperiment object.}
 
-\item{colour_column}{A column name string representing the point colour.}
+\item{colour}{A single colour string compatible with ggplot2. Or, a vector representing the
+point colour.}
 
-\item{shape_column}{A column name string representing the point shape. Must be coercible to
-a factor.}
+\item{shape}{A single ggplot2 shape numeric ranging from 0 to 127. Or, a vector representing the
+point shape, coercible to a factor of 6 or less levels.}
 
-\item{alpha}{A numeric value representing the opacity of points, with 1 being completely opaque
-and 0 being completely transparent.}
+\item{alpha}{A single ggplot2 alpha numeric ranging from 0 to 1.}
 
-\item{size}{A numeric value representing the size of points.}
+\item{size}{A single ggplot2 size numeric ranging from 0 to 20.}
+
+\item{hide_points}{A logical. If TRUE, points are hidden during interactive gating. This can
+greatly improve performance with large SpatialExperiment objects.}
 }
 \value{
-A vector of lists, recording the gates each X and Y coordinate pair is within. A record
-of the selected points is stored in \code{tidygate_env$select_data} and a record of the gates is
-stored in \code{tidygate_env$brush_data}.
-
-The input SpatialExperiment object with a new column \code{.gate_interactive}, recording the
-gates each X and Y coordinate pair is within. A record of the selected points is stored in
-\code{tidygate_env$select_data} and a record of the gates is stored in \code{tidygate_env$brush_data}.
+The input SpatialExperiment object with a new column \code{.gated}, recording the
+gates each X and Y coordinate pair is within. If gates are drawn interactively, they are
+temporarily saved to \code{tidygate_env$gates}
 }
 \description{
 Interactively gate points by their location in space, with image data overlaid.
 }
 \examples{
-\dontrun{
 example(read10xVisium)
-spe |>
-    gate_interactive()
+data(demo_brush_data, package = "tidySpatialExperiment")
+
+if(interactive()) {
+    spe |>
+        gate(colour = "blue", shape = "in_tissue")
 }
 }

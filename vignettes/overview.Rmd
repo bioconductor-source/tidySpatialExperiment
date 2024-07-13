@@ -17,6 +17,7 @@ vignette: |
   %\VignetteEncoding{UTF-8}
 ---
 
+
 # Introduction
 
 tidySpatialExperiment provides a bridge between the
@@ -86,11 +87,14 @@ The *tidyomics* ecosystem also includes packages for:
 
 | Utility           | Description                                                                      |
 |-----------------------------------|-------------------------------------|
-| `as_tibble`       | Convert cell data to a `tbl_df`                                                  |
-| `join_features`   | Append feature data to cell data                                                 |
-| `aggregate_cells` | Aggregate cell-feature abundance into a pseudobulk `SummarizedExperiment` object |
-| `rectangle`       | Select cells in a rectangular region of space                                               |
-| `ellipse`         | Select cells in an elliptical region of space                                                |
+| `as_tibble`         | Convert cell data to a `tbl_df`                                                  |
+| `join_features`     | Append feature data to cell data                                                 |
+| `aggregate_cells`   | Aggregate cell-feature abundance into a pseudobulk `SummarizedExperiment` object |
+| `rectangle`         | Select cells in a rectangular region of space                                               |
+| `ellipse`           | Select cells in an elliptical region of space                                                |
+| `gate_spatial`      |  |
+| `gate_programmatic` |  |
+
 
 ## Installation
 
@@ -123,6 +127,13 @@ object.
 # Load example SpatialExperiment object
 library(tidySpatialExperiment)
 example(read10xVisium)
+```
+
+```{r, echo=FALSE}
+# Remove unneeded second sample from demo data
+spe <-
+    spe |>
+    filter(sample_id == "section1")
 ```
 
 ## SpatialExperiment-tibble abstraction
@@ -237,38 +248,7 @@ spe |>
     )
 ```
 
-![plotly demonstration](../man/figures/plotly_demo.png)
-
-# Integration with the *tidyomics* ecosystem
-
-## Interactively select cells with tidygate
-
-Different packages from the *tidyomics* ecosystem are easy to use
-together. Here, tidygate is used to interactively gate cells based on
-their array location.
-
-```{r, eval=FALSE}
-spe_regions <-
-    spe |> 
-    filter(sample_id == "section1") |>
-    mutate(region = tidygate::gate_chr(array_col, array_row))
-```
-
-![tidygate demonstration](../man/figures/tidygate_demo.gif)
-
-```{r, echo=FALSE}
-# Manually set gate information to match demonstration
-spe_regions <-
-    spe |> 
-    filter(sample_id == "section1") |>
-    mutate(region = ifelse(
-        array_row < 48 &
-        array_row > 20 &
-        array_col < 80 &
-        array_col > 60, 
-        1, 0)
-    )
-```
+![](../man/figures/plotly_demo.png)
 
 # Utilities
 
@@ -317,6 +297,71 @@ spe |>
     geom_point()
 ```
 
+## Interactive gating
+
+For the interactive selection of cells in space, tidySpatialExperiment experiment provides `gate()`. This function uses [tidygate](https://github.com/stemangiola/tidygate), shiny and plotly to launch an interactive plot overlaying cells in position with image data. Additional parameters can be used to specify point colour, shape, size and alpha, either with a column in the SpatialExperiment object or a constant value.
+
+```{r, eval=FALSE}
+spe_gated <- 
+  spe |>
+  gate(colour = "in_tissue", alpha = 0.8)
+```
+![](../man/figures/gate_interactive_demo.gif)
+
+```{r, echo=FALSE}
+# Load pre-recorded brush path from data for example
+data("demo_brush_data", package = "tidySpatialExperiment")
+
+tidygate_env <<- rlang::env()
+tidygate_env$gates <- demo_brush_data 
+
+spe_gated <-
+  spe |>
+  gate(programmatic_gates = tidygate_env$gates)
+```
+
+A record of which points appear in which gates is appended to the SpatialExperiment object in the `.gated` column. To select cells which appear within any gates, filter for non-NA values. To select cells which appear within a specific gate, string pattern matching can be used.
+
+```{r}
+# Select cells within any gate
+spe_gated |> 
+  filter(!is.na(.gated))
+# Select cells within gate 2
+spe_gated |>
+  filter(stringr::str_detect(.gated, "2"))
+```
+
+Details of the interactively drawn gates are saved to `tidygate_env$gates`. This variable is overwritten each time interactive gates are drawn, so save it right away if you would like to access it later.  
+
+```{r}
+# Inspect previously drawn gates
+tidygate_env$gates |>
+  head()
+```
+
+```{r, eval=FALSE}
+# Save if needed
+tidygate_env$gates |>
+  write_rds("important_gates.rds")
+```
+
+If previously drawn gates are supplied to the `programmatic_gates` argument, cells will be gated programmatically. This feature allows the reproduction of previously drawn interactive gates.
+
+```{r, eval=FALSE}
+important_gates <-
+  read_rds("important_gates.rds")
+
+spe |>
+  gate(programmatic_gates = important_gates)) |>
+  filter(!is.na(.gated))
+```
+
+```{r, echo=FALSE}
+spe |>
+  gate(programmatic_gates = tidygate_env$gates) |>
+  filter(!is.na(.gated))
+```
+
 # Special column behaviour
 
 Removing the `.cell` column will return a tibble. This is consistent
@@ -328,7 +373,7 @@ spe |>
     head()
 ```
 
-The sample_id column cannot be removed with *tidyverse* functions, and
+The `sample_id` column cannot be removed with *tidyverse* functions, and
 can only be modified if the changes are accepted by SpatialExperiment's
 `colData()` function.
 
@@ -361,7 +406,9 @@ spe |>
     mutate(pxl_col_in_fullres)
 ```
 
+# Citation
 
+If you use tidySpatialExperiment in published research, please cite [The tidyomics ecosystem: enhancing omic data analyses](https://doi.org/10.1038/s41592-024-02299-2).
 
 ```{r}
 sessionInfo()
